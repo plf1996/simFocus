@@ -11,7 +11,6 @@ from fastapi.responses import JSONResponse
 
 from app.config import get_settings
 from app.db.session import close_db, init_db
-from app.core.exceptions import BaseAppException
 
 settings = get_settings()
 
@@ -63,41 +62,9 @@ app.add_middleware(
 )
 
 
-# Global exception handlers
-@app.exception_handler(BaseAppException)
-async def base_app_exception_handler(request: Request, exc: BaseAppException):
-    """
-    Handle all custom application exceptions.
-
-    Converts application exceptions to appropriate HTTP responses
-    with consistent error format.
-    """
-    return JSONResponse(
-        status_code=exc.status_code,
-        content=exc.to_dict(),
-    )
-
-
-@app.exception_handler(Exception)
-async def general_exception_handler(request: Request, exc: Exception):
-    """
-    Handle all unhandled exceptions.
-
-    Logs the error and returns a generic error response.
-    """
-    import logging
-    import traceback
-
-    logging.error(f"Unhandled exception: {str(exc)}")
-    logging.error(traceback.format_exc())
-
-    return JSONResponse(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "error": "INTERNAL_SERVER_ERROR",
-            "message": "An unexpected error occurred",
-        },
-    )
+# Register global exception handlers
+from app.api.error_handlers import register_exception_handlers
+register_exception_handlers(app)
 
 
 # Health check endpoint
@@ -131,13 +98,14 @@ async def root():
 
 
 # Include API routers
-from app.api.v1 import auth, users, topics, characters, discussions
+from app.api.v1 import auth, users, topics, characters, discussions, reports
 
 app.include_router(auth.router, prefix="/api/v1", tags=["Auth"])
 app.include_router(users.router, prefix="/api/v1", tags=["Users"])
 app.include_router(topics.router, prefix="/api/v1", tags=["Topics"])
 app.include_router(characters.router, prefix="/api/v1", tags=["Characters"])
 app.include_router(discussions.router, prefix="/api/v1", tags=["Discussions"])
+app.include_router(reports.router, prefix="/api/v1", tags=["Reports"])
 
 
 if __name__ == "__main__":

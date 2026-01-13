@@ -6,6 +6,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Discussion, DiscussionCreate, DiscussionDetail, DiscussionStatus } from '@/types'
+import { api } from '@/services/api'
 
 export const useDiscussionStore = defineStore('discussion', () => {
   // State
@@ -18,22 +19,39 @@ export const useDiscussionStore = defineStore('discussion', () => {
   const activeDiscussionId = computed(() => activeDiscussion.value?.id ?? null)
   const isActive = computed(() => activeDiscussion.value?.status === 'running')
   const isPaused = computed(() => activeDiscussion.value?.status === 'paused')
+  const isCompleted = computed(() => activeDiscussion.value?.status === 'completed')
   const progress = computed(() =>
     activeDiscussion.value
       ? (activeDiscussion.value.current_round / activeDiscussion.value.max_rounds) * 100
       : 0
   )
 
+  const currentPhase = computed(() => activeDiscussion.value?.current_phase ?? null)
+  const currentRound = computed(() => activeDiscussion.value?.current_round ?? 0)
+
   // Actions
   async function createDiscussion(data: DiscussionCreate) {
     isLoading.value = true
     error.value = null
     try {
-      // TODO: Implement actual API call
-      // const discussion = await discussionApi.create(data)
-      // discussions.value.unshift(discussion)
-      // return discussion
-      return {} as Discussion
+      const response = await api.post('/discussions', data)
+      discussions.value.unshift(response.data)
+      return response.data
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function fetchDiscussions() {
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await api.get('/discussions')
+      discussions.value = response.data
+      return response.data
     } catch (e) {
       error.value = e as Error
       throw e
@@ -46,11 +64,9 @@ export const useDiscussionStore = defineStore('discussion', () => {
     isLoading.value = true
     error.value = null
     try {
-      // TODO: Implement actual API call
-      // const discussion = await discussionApi.getById(id)
-      // activeDiscussion.value = discussion
-      // return discussion
-      return {} as DiscussionDetail
+      const response = await api.get(`/discussions/${id}`)
+      activeDiscussion.value = response.data
+      return response.data
     } catch (e) {
       error.value = e as Error
       throw e
@@ -60,47 +76,123 @@ export const useDiscussionStore = defineStore('discussion', () => {
   }
 
   async function startDiscussion(id: string) {
-    // TODO: Implement actual API call
-    // const discussion = await discussionApi.start(id)
-    // if (activeDiscussion.value?.id === id) {
-    //   activeDiscussion.value = discussion
-    // }
-    // updateDiscussionInList(discussion)
-    // return discussion
-    return {} as Discussion
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await api.post(`/discussions/${id}/start`)
+      if (activeDiscussion.value?.id === id) {
+        activeDiscussion.value = response.data
+      }
+      updateDiscussionInList(response.data)
+      return response.data
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
   }
 
   async function pauseDiscussion(id: string) {
-    // TODO: Implement actual API call
-    // const discussion = await discussionApi.pause(id)
-    // if (activeDiscussion.value?.id === id) {
-    //   activeDiscussion.value = discussion
-    // }
-    // updateDiscussionInList(discussion)
-    // return discussion
-    return {} as Discussion
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await api.post(`/discussions/${id}/pause`)
+      if (activeDiscussion.value?.id === id) {
+        activeDiscussion.value = response.data
+      }
+      updateDiscussionInList(response.data)
+      return response.data
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
   }
 
   async function resumeDiscussion(id: string) {
-    // TODO: Implement actual API call
-    // const discussion = await discussionApi.resume(id)
-    // if (activeDiscussion.value?.id === id) {
-    //   activeDiscussion.value = discussion
-    // }
-    // updateDiscussionInList(discussion)
-    // return discussion
-    return {} as Discussion
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await api.post(`/discussions/${id}/resume`)
+      if (activeDiscussion.value?.id === id) {
+        activeDiscussion.value = response.data
+      }
+      updateDiscussionInList(response.data)
+      return response.data
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
   }
 
   async function stopDiscussion(id: string) {
-    // TODO: Implement actual API call
-    // const discussion = await discussionApi.stop(id)
-    // if (activeDiscussion.value?.id === id) {
-    //   activeDiscussion.value = discussion
-    // }
-    // updateDiscussionInList(discussion)
-    // return discussion
-    return {} as Discussion
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await api.post(`/discussions/${id}/stop`)
+      if (activeDiscussion.value?.id === id) {
+        activeDiscussion.value = response.data
+      }
+      updateDiscussionInList(response.data)
+      return response.data
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function deleteDiscussion(id: string) {
+    isLoading.value = true
+    error.value = null
+    try {
+      await api.delete(`/discussions/${id}`)
+      discussions.value = discussions.value.filter((d) => d.id !== id)
+      if (activeDiscussion.value?.id === id) {
+        activeDiscussion.value = null
+      }
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function injectQuestion(id: string, question: string) {
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await api.post(`/discussions/${id}/inject`, { question })
+      return response.data
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  async function adjustSpeed(id: string, speed: number) {
+    isLoading.value = true
+    error.value = null
+    try {
+      const response = await api.patch(`/discussions/${id}/speed`, { speed })
+      if (activeDiscussion.value?.id === id) {
+        activeDiscussion.value = { ...activeDiscussion.value, ...response.data }
+      }
+      return response.data
+    } catch (e) {
+      error.value = e as Error
+      throw e
+    } finally {
+      isLoading.value = false
+    }
   }
 
   function updateActiveDiscussion(data: Partial<DiscussionDetail>) {
@@ -130,14 +222,21 @@ export const useDiscussionStore = defineStore('discussion', () => {
     activeDiscussionId,
     isActive,
     isPaused,
+    isCompleted,
     progress,
+    currentPhase,
+    currentRound,
     // Actions
     createDiscussion,
+    fetchDiscussions,
     fetchDiscussion,
     startDiscussion,
     pauseDiscussion,
     resumeDiscussion,
     stopDiscussion,
+    deleteDiscussion,
+    injectQuestion,
+    adjustSpeed,
     updateActiveDiscussion,
     clearActiveDiscussion
   }

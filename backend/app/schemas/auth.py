@@ -108,7 +108,7 @@ class VerifyEmailRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     """Password change request for authenticated users."""
 
-    old_password: str = Field(
+    current_password: str = Field(
         ...,
         description="Current password"
     )

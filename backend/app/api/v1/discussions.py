@@ -118,10 +118,13 @@ async def delete_discussion(
     Delete discussion.
 
     Can only delete discussions that are not currently running.
+    Cascade deletes messages and participants.
     """
-    # DiscussionService doesn't have a delete method yet, so we'll add a placeholder
-    # TODO: Implement delete in DiscussionService
-    return MessageResponse(message="Discussion deletion not yet implemented")
+    await discussion_service.delete_discussion(
+        discussion_id=discussion_id,
+        user_id=str(current_user.id),
+    )
+    return MessageResponse(message="Discussion deleted successfully")
 
 
 @router.post(
@@ -260,12 +263,9 @@ async def get_discussion_messages(
     - **round**: Optional filter for specific round
     Returns messages with character info and metadata.
     """
-    # TODO: Implement get_messages in DiscussionService
-    # For now, return empty list
-    discussion = await discussion_service.get_discussion(discussion_id=discussion_id)
-    # Verify ownership
-    if str(discussion.user_id) != str(current_user.id):
-        from app.core.exceptions import ForbiddenException
-        raise ForbiddenException("Discussion does not belong to this user")
-
-    return []
+    messages = await discussion_service.get_discussion_messages(
+        discussion_id=discussion_id,
+        user_id=str(current_user.id),
+        round_filter=round,
+    )
+    return messages

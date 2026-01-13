@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -24,6 +24,7 @@ from app.models.character import Character
 from app.models.discussion import Discussion, DiscussionParticipant
 from app.models.topic import Topic
 from app.services.api_key_service import ApiKeyService
+from sqlalchemy.orm import joinedload
 
 
 class DiscussionService:
@@ -603,6 +604,153 @@ class DiscussionService:
         # await self._store_injected_question(discussion_id, question)
 
         return True
+
+    async def delete_discussion(self, discussion_id: str, user_id: str) -> bool:
+        """
+        Delete a discussion.
+
+        Performs soft delete. Can only delete discussions that are not currently running.
+        Cascade deletes messages and participants.
+
+        Args:
+            discussion_id: Discussion UUID as string
+            user_id: User UUID as string (for authorization)
+
+        Returns:
+            True if deleted successfully
+
+        Raises:
+            DiscussionNotFoundException: If discussion doesn't exist
+            DiscussionNotActiveException: If discussion is currently running
+            ValidationException: If authorization fails
+
+        Example:
+            >>> success = await discussion_service.delete_discussion(
+            ...     discussion_id="123",
+            ...     user_id="456"
+            ... )
+        """
+        from app.models.discussion import DiscussionMessage
+
+        # Get discussion
+        discussion = await self._get_discussion_with_participants(discussion_id)
+
+        if not discussion:
+            raise DiscussionNotFoundException(discussion_id=discussion_id)
+
+        # Verify ownership
+        if str(discussion.user_id) != user_id:
+            raise ValidationException(
+                message="Discussion does not belong to this user",
+                details={"discussion_id": discussion_id, "user_id": user_id}
+            )
+
+        # Check if discussion is running
+        if discussion.status == "running":
+            raise ValidationException(
+                message="Cannot delete discussion that is currently running. Stop it first.",
+                details={"discussion_id": discussion_id, "current_status": discussion.status}
+            )
+
+        # Delete messages
+        await self.db.execute(
+            delete(DiscussionMessage).where(
+                DiscussionMessage.discussion_id == UUID(discussion_id)
+            )
+        )
+
+        # Delete discussion (participants and report will be cascade deleted)
+        await self.db.execute(
+            delete(Discussion).where(
+                Discussion.id == UUID(discussion_id)
+            )
+        )
+
+        await self.db.commit()
+
+        return True
+
+    async def get_discussion_messages(
+        self,
+        discussion_id: str,
+        user_id: str,
+        round_filter: Optional[int] = None,
+    ) -> list[dict]:
+        """
+        Get messages from a discussion.
+
+        Args:
+            discussion_id: Discussion UUID as string
+            user_id: User UUID as string (for authorization)
+            round_filter: Optional round number to filter messages
+
+        Returns:
+            List of message dictionaries with character info
+
+        Raises:
+            DiscussionNotFoundException: If discussion doesn't exist
+            ValidationException: If authorization fails
+
+        Example:
+            >>> messages = await discussion_service.get_discussion_messages(
+            ...     discussion_id="123",
+            ...     user_id="456",
+            ...     round_filter=3
+            ... )
+        """
+        from app.models.discussion import DiscussionMessage
+
+        # Get discussion to verify ownership
+        discussion = await self._get_discussion_with_participants(discussion_id)
+
+        if not discussion:
+            raise DiscussionNotFoundException(discussion_id=discussion_id)
+
+        # Verify ownership
+        if str(discussion.user_id) != user_id:
+            raise ValidationException(
+                message="Discussion does not belong to this user",
+                details={"discussion_id": discussion_id, "user_id": user_id}
+            )
+
+        # Build query for messages
+        query = (
+            select(DiscussionMessage)
+            .join(DiscussionParticipant, DiscussionMessage.participant_id == DiscussionParticipant.id)
+            .join(Character, DiscussionParticipant.character_id == Character.id)
+            .where(DiscussionMessage.discussion_id == UUID(discussion_id))
+            .order_by(DiscussionMessage.created_at.asc())
+        )
+
+        # Apply round filter if specified
+        if round_filter is not None:
+            query = query.where(DiscussionMessage.round == round_filter)
+
+        # Execute query
+        result = await self.db.execute(query)
+        messages = result.scalars().all()
+
+        # Format response
+        message_list = []
+        for msg in messages:
+            # Get participant and character info
+            participant = msg.participant
+            character = participant.character if participant else None
+
+            message_list.append({
+                "id": str(msg.id),
+                "participant_id": str(msg.participant_id),
+                "character_name": character.name if character else "Unknown",
+                "character_avatar": character.avatar_url if character else None,
+                "round": msg.round,
+                "phase": msg.phase,
+                "content": msg.content,
+                "token_count": msg.token_count,
+                "is_injected_question": msg.is_injected_question,
+                "created_at": msg.created_at,
+            })
+
+        return message_list
 
     async def _get_topic_by_id(self, topic_id: str) -> Optional[Topic]:
         """Get topic by ID."""

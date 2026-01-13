@@ -1,46 +1,50 @@
 <template>
-  <div id="app" :class="{ 'is-dark': uiStore.theme === 'dark' }">
-    <!-- Global loading overlay -->
-    <div v-if="uiStore.globalLoading" class="global-loading">
-      <el-icon class="is-loading" :size="40">
-        <Loading />
-      </el-icon>
-    </div>
-
-    <!-- Router view -->
-    <RouterView v-else />
-
-    <!-- Global notification container -->
-    <teleport to="body">
-      <div class="notification-container">
-        <!-- Element Plus handles notifications automatically -->
+  <AppErrorBoundary :on-error="handleGlobalError">
+    <div id="app" :class="{ 'is-dark': uiStore.theme === 'dark' }">
+      <!-- Global loading overlay -->
+      <div v-if="uiStore.globalLoading" class="global-loading">
+        <el-icon class="is-loading" :size="40">
+          <Loading />
+        </el-icon>
       </div>
-    </teleport>
-  </div>
+
+      <!-- Router view -->
+      <RouterView v-else />
+
+      <!-- Global notification container -->
+      <teleport to="body">
+        <div class="notification-container">
+          <!-- Element Plus handles notifications automatically -->
+        </div>
+      </teleport>
+    </div>
+  </AppErrorBoundary>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onErrorCaptured } from 'vue'
+import { onMounted } from 'vue'
 import { useUiStore } from '@/stores/ui'
 import { ElMessage } from 'element-plus'
 import { Loading } from '@element-plus/icons-vue'
+import AppErrorBoundary from '@/components/common/AppErrorBoundary.vue'
 
 const uiStore = useUiStore()
 
-// Capture component errors
-onErrorCaptured((err: Error) => {
-  console.error('Component error captured:', err)
+// Handle global errors from ErrorBoundary
+function handleGlobalError(error: Error) {
+  // Log to external error tracking service in production
+  if (import.meta.env.PROD) {
+    // TODO: Send to Sentry or similar service
+    console.error('Global error:', error)
+  }
 
-  // Show error message to user
+  // Show user-friendly message
   ElMessage.error({
-    message: err.message || 'An error occurred in this component',
+    message: 'An unexpected error occurred. Please try again.',
     duration: 5000,
     showClose: true
   })
-
-  // Return false to prevent error from propagating further
-  return false
-})
+}
 
 onMounted(() => {
   // Initialize theme on app mount

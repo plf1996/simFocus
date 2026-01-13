@@ -1,7 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
-import ElementPlus from 'element-plus'
+// Element Plus styles are now imported via auto-import
+// Only import global styles explicitly
 import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 
@@ -21,9 +22,10 @@ pinia.use(piniaPluginPersistedstate)
 // Register plugins
 app.use(pinia)
 app.use(router)
-app.use(ElementPlus, { size: 'default', zIndex: 3000 })
+// Element Plus is now auto-imported via unplugin-vue-components
+// No need to manually register the full library
 
-// Register Element Plus icons
+// Register Element Plus icons globally
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
