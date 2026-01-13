@@ -1,0 +1,174 @@
+// Main Style Entry Point
+// ============================================
+
+// Import reset
+@import './reset.scss';
+
+// Import variables and mixins
+@import './variables.scss';
+@import './mixins.scss';
+
+// Import Element Plus styles
+@import 'element-plus/theme-chalk/src/index.scss';
+
+// Global styles
+html,
+body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+#app {
+  height: 100%;
+}
+
+// Container
+.container {
+  width: 100%;
+  max-width: $container-max-width;
+  margin: 0 auto;
+  padding: 0 $spacing-md;
+
+  @include respond-to(md) {
+    padding: 0 $spacing-lg;
+  }
+}
+
+// Section
+.section {
+  padding: $spacing-xl 0;
+
+  @include respond-to(md) {
+    padding: $spacing-xxl 0;
+  }
+}
+
+// Card
+.card {
+  @include card-style;
+}
+
+// Loading overlay
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  @include flex-center;
+  background-color: rgba(255, 255, 255, 0.9);
+  z-index: $z-modal;
+  backdrop-filter: blur(4px);
+}
+
+// Empty state
+.empty-state {
+  @include flex-column;
+  @include flex-center;
+  gap: $spacing-md;
+  padding: $spacing-xxl;
+  text-align: center;
+  color: $text-color-secondary;
+
+  .empty-icon {
+    font-size: 48px;
+    color: $text-color-tertiary;
+  }
+
+  .empty-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $text-color-primary;
+  }
+
+  .empty-description {
+    font-size: $font-size-sm;
+    color: $text-color-secondary;
+    max-width: 400px;
+  }
+}
+
+// Utility classes
+.text-truncate {
+  @include text-truncate;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mt-1 {
+  margin-top: $spacing-xs;
+}
+
+.mt-2 {
+  margin-top: $spacing-sm;
+}
+
+.mt-3 {
+  margin-top: $spacing-md;
+}
+
+.mt-4 {
+  margin-top: $spacing-lg;
+}
+
+.mb-1 {
+  margin-bottom: $spacing-xs;
+}
+
+.mb-2 {
+  margin-bottom: $spacing-sm;
+}
+
+.mb-3 {
+  margin-bottom: $spacing-md;
+}
+
+.mb-4 {
+  margin-bottom: $spacing-lg;
+}
+
+.p-1 {
+  padding: $spacing-xs;
+}
+
+.p-2 {
+  padding: $spacing-sm;
+}
+
+.p-3 {
+  padding: $spacing-md;
+}
+
+.p-4 {
+  padding: $spacing-lg;
+}
+
+// Transition animations
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity $transition-base $transition-easing;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform $transition-base $transition-easing;
+}
+
+.slide-enter-from {
+  transform: translateX(-100%);
+}
+
+.slide-leave-to {
+  transform: translateX(100%);
+}

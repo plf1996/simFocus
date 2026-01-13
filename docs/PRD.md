@@ -1,1775 +1,2739 @@
-# 产品需求文档 (PRD)
-# AI虚拟焦点小组平台 - simFocus
+# Product Requirements Document (PRD)
+# AI Virtual Focus Group Platform - simFocus
 
-**文档版本**: v1.0
-**创建日期**: 2026-01-09
-**产品负责人**: AI Product Manager
-**文档状态**: 初稿待评审
-
----
-
-## 目录
-
-1. [产品概述](#1-产品概述)
-2. [目标用户](#2-目标用户)
-3. [用户故事](#3-用户故事)
-4. [功能需求](#4-功能需求)
-5. [非功能需求](#5-非功能需求)
-6. [功能优先级](#6-功能优先级)
-7. [成功指标](#7-成功指标)
-8. [竞品分析](#8-竞品分析)
-9. [未来规划](#9-未来规划)
-10. [风险与依赖](#10-风险与依赖)
+**Document Version**: v1.1
+**Date**: 2026-01-12
+**Status**: Technical Review Completed
+**Product Owner**: AI Product Manager
 
 ---
 
-## 1. 产品概述
+## Change Summary (v1.0 → v1.1)
 
-### 1.1 产品定位
+This version incorporates comprehensive technical reviews from software architecture, backend, and frontend experts. Key updates include:
 
-**simFocus** 是一个基于大模型技术的AI虚拟焦点小组平台，通过模拟多个不同背景、思维风格的虚拟角色进行实时讨论，帮助用户快速获取多角度观点、深度洞察和创意启发，辅助决策和问题解决。
+### Architecture & Design
+- **Added Section 4.1**: System Architecture with high-level component diagram and technology stack justification
+- **Added Section 4.2**: Data Architecture with detailed database schema and caching strategy
+- **Added Section 4.3**: API Design specifications for REST and WebSocket protocols
+- **Enhanced Section 5.2**: Expanded security implementation details with encryption specifications
 
-### 1.2 核心价值主张
+### Technical Clarifications
+- Defined LLM provider abstraction layer for multi-vendor support
+- Specified WebSocket scaling strategy using Redis Pub/Sub
+- Added discussion state machine for session management
+- Clarified error handling and retry mechanisms
+- Specified performance optimization strategies
 
-- **多视角碰撞**：一次讨论获取3-7个不同角色的观点，节省逐个咨询的时间
-- **实时观摩体验**：观看观点形成、碰撞、演变的全过程，而非仅获取结论
-- **智能角色系统**：支持自定义角色或AI自动生成最适合议题的讨论者
-- **深度思考外化**：将复杂的论证过程可视化、结构化
-- **隐私与可控**：用户自备API密钥，数据本地化存储，完全掌控讨论内容
+### Risk Mitigations
+- Identified technical risks with WebSocket connection instability
+- Added mitigation strategies for LLM API rate limiting
+- Defined data retention and archival policies
+- Specified monitoring and observability requirements
 
-### 1.3 产品目标
-
-**短期目标（3-6个月）**：
-- 完成核心功能MVP开发，支持基础的多角色讨论流程
-- 验证产品-市场匹配度，获取首批100个种子用户
-- 建立稳定的角色生成和讨论驱动机制
-
-**中期目标（6-12个月）**：
-- 优化讨论质量，使AI角色对话达到真实焦点小组80%的效果
-- 扩展到企业用户，推出团队协作版本
-- 建立角色库生态，支持用户分享和复用优质角色配置
-
-**长期目标（12个月以上）**：
-- 成为知识工作者、产品团队、研究机构的标准思维辅助工具
-- 支持多语言、多文化背景的角色讨论
-- 探索实时互动、语音讨论等更丰富的交互形式
-
-### 1.4 目标市场
-
-**主要市场**：
-- 个人知识工作者（独立开发者、自由职业者、研究者）
-- 产品团队（产品经理、UX研究员、市场研究员）
-- 教育领域（学生、教师、学术研究者）
-- 创意行业（设计师、文案策划、营销人员）
-
-**地理范围**：初期聚焦中文用户，后期扩展至全球市场
+### Open Questions
+- **Added Appendix D**: Unresolved items requiring product/technical team decisions
 
 ---
 
-## 2. 目标用户
+## Table of Contents
 
-### 2.1 用户画像
-
-#### 主要用户群1：产品经理 - 小张
-
-**基本信息**：
-- 年龄：28岁
-- 职业：互联网公司产品经理
-- 工作经验：4年
-
-**使用场景**：
-- 需求评审前，快速验证产品想法的可行性
-- 功能设计时，模拟不同用户角色的反应和需求
-- 竞品分析时，从多角度评估竞品策略
-
-**核心诉求**：
-- 快速获取多元观点，避免思维盲区
-- 节省组织真实用户调研的时间成本
-- 获取结构化的论证过程，便于向团队汇报
-
-**痛点**：
-- 团队内部讨论容易形成群体思维
-- 组织真实焦点小组耗时耗力（招募、场地、礼品）
-- 难以快速获取专家级意见
-
-#### 主要用户群2：独立研究者 - 李教授
-
-**基本信息**：
-- 年龄：45岁
-- 职业：高校哲学系副教授
-- 工作经验：15年
-
-**使用场景**：
-- 学术论文写作时，模拟同行评审意见
-- 哲学议题探讨时，获取不同思想流派的视角
-- 教学备课，设计课堂讨论题目
-
-**核心诉求**：
-- 模拟多位专家的深度思辨过程
-- 探索议题的多个维度和可能性
-- 生成教学案例和讨论素材
-
-**痛点**：
-- 难以找到不同领域的专家进行跨学科讨论
-- 学术圈交流周期长、成本高
-- 需要快速验证某个论点的合理性
-
-#### 主要用户群3：创业创始人 - 王总
-
-**基本信息**：
-- 年龄：35岁
-- 职业：早期创业公司创始人
-- 工作经验：10年
-
-**使用场景**：
-- 商业模式验证，模拟投资人、用户、员工等多方视角
-- 决策前快速获取"魔鬼代言人"的反对意见
-- 战略规划时，模拟市场反应和竞争格局
-
-**核心诉求**：
-- 快速压力测试商业想法
-- 发现决策盲点和潜在风险
-- 获取不同利益相关者的模拟反馈
-
-**痛点**：
-- 团队规模小，缺乏多样性观点
-- 咨询顾问成本高昂
-- 决策时间紧迫，需要快速验证
-
-### 2.2 用户细分
-
-| 用户类型 | 使用频率 | 付费意愿 | 功能需求重点 |
-|---------|---------|---------|------------|
-| 个人用户（轻度） | 每月1-3次 | 低 | 基础讨论、免费角色库 |
-| 个人用户（重度） | 每周2-5次 | 中 | 自定义角色、历史记录、导出 |
-| 企业团队 | 每周5-10次 | 高 | 协作、企业角色库、数据管理 |
-| 教育机构 | 每月10+次 | 中高 | 教学模式、批量讨论、学生管理 |
+1. [Product Overview](#1-product-overview)
+2. [Target Users](#2-target-users)
+3. [User Stories](#3-user-stories)
+4. [Functional Requirements](#4-functional-requirements)
+   - 4.1 [Core Function Modules](#41-core-function-modules)
+   - 4.2 [System Architecture](#42-system-architecture) **[NEW]**
+   - 4.3 [Data Architecture](#43-data-architecture) **[NEW]**
+   - 4.4 [API Design](#44-api-design) **[NEW]**
+   - 4.5 [Enhanced Function Modules](#45-enhanced-function-modules)
+   - 4.6 [Functional Interaction Flows](#46-functional-interaction-flows)
+5. [Non-Functional Requirements](#5-non-functional-requirements)
+6. [Feature Prioritization](#6-feature-prioritization)
+7. [Success Metrics](#7-success-metrics)
+8. [Competitive Analysis](#8-competitive-analysis)
+9. [Future Planning](#9-future-planning)
+10. [Risks and Dependencies](#10-risks-and-dependencies)
+11. [Appendices](#appendices)
+   - Appendix A: Glossary
+   - Appendix B: Reference Documents
+   - Appendix C: Contact Information
+   - Appendix D: Open Questions **[NEW]**
 
 ---
 
-## 3. 用户故事
+## 1. Product Overview
 
-### 3.1 核心用户旅程
+### 1.1 Product Positioning
 
-**旅程1：快速获取产品反馈**
+**simFocus** is an AI-powered virtual focus group platform that simulates multi-character discussions in real-time, enabling users to rapidly obtain diverse perspectives, deep insights, and creative inspiration to support decision-making and problem-solving.
 
-> 作为产品经理，我想快速了解新功能的市场反应，以便在开发前做出调整。
+### 1.2 Core Value Propositions
 
-**步骤**：
-1. 登录平台，点击"创建新讨论"
-2. 输入议题："我们计划为电商App增加AI推荐功能，用户上传商品照片后自动推荐相似商品"
-3. 选择"自动生成角色"
-4. 系统推荐角色配置：产品经理、UI设计师、技术工程师、普通用户、数据隐私专家
-5. 点击"开始讨论"
-6. 实时观看5个角色围绕功能价值、技术可行性、用户体验、隐私风险展开辩论
-7. 15分钟后讨论结束，查看自动生成的报告
-8. 报告显示：功能价值高但隐私风险需重视，建议采用本地化AI方案
-9. 导出PDF报告，分享给团队
+- **Multi-Perspective Collision**: Obtain 3-7 different character viewpoints in a single discussion, saving time compared to individual consultations
+- **Real-Time Observation Experience**: Watch the formation, collision, and evolution of viewpoints throughout the process, not just receive conclusions
+- **Intelligent Character System**: Support custom character creation or AI automatic generation of optimal discussion participants
+- **Deep Thinking Externalization**: Visualize and structure complex argumentation processes
+- **Privacy and Control**: Users provide their own API keys, data is stored locally, fully controlling discussion content
 
-**旅程2：学术议题深度探讨**
+### 1.3 Product Goals
 
-> 作为哲学研究者，我想探讨"人工智能是否具有意识"这一议题，获取不同思想流派的观点。
+**Short-term Goals (3-6 months)**:
+- Complete MVP core feature development, supporting basic multi-character discussion workflow
+- Validate product-market fit, acquire first 100 seed users
+- Establish stable character generation and discussion driving mechanisms
 
-**步骤**：
-1. 创建讨论，输入议题："从功能主义、二元论、物理主义三个视角讨论AI意识的可能性"
-2. 选择"自定义角色"
-3. 手动定义三个角色：
-   - 角色1：功能主义者，强调思维的计算理论
-   - 角色2：二元论者，坚持心物二元
-   - 角色3：物理主义者，认为意识是物理过程的涌现
-4. 开始讨论，观看三方的深度思辨和交锋
-5. 发现角色2提出的"感受质"问题引发激烈辩论
-6. 查看讨论报告，提炼出核心争议点和各方论据
-7. 保存讨论记录，作为论文写作素材
+**Medium-term Goals (6-12 months)**:
+- Optimize discussion quality to achieve 80% effectiveness of real focus groups
+- Expand to enterprise users, launch team collaboration version
+- Build character library ecosystem, support user sharing and reuse of quality character configurations
 
-**旅程3：创业想法压力测试**
+**Long-term Goals (12+ months)**:
+- Become a standard thinking assistance tool for knowledge workers, product teams, and research institutions
+- Support multi-language and multi-cultural background character discussions
+- Explore real-time interaction, voice discussions and other richer interaction forms
 
-> 作为创业创始人，我想测试新商业模式的风险和机会，以便完善商业计划书。
+### 1.4 Target Market
 
-**步骤**：
-1. 输入议题："我想做一个针对老年人的上门服务平台，主打2小时响应"
-2. 选择角色模板："创业评审委员会"（预设配置）
-3. 角色包括：天使投资人、行业专家、财务顾问、目标用户代表、竞争对手
-4. 开始讨论
-5. 观摩过程中发现"2小时响应"在三四线城市难以实现
-6. 暂停讨论，插入引导问题："如果分阶段实施，先从一线城市开始呢？"
-7. 角色们调整讨论方向，探讨分阶段策略
-8. 最终报告建议：先在一线城市建立标杆，验证模式后扩展
-9. 根据讨论结果调整商业计划书
+**Primary Market**:
+- Individual knowledge workers (independent developers, freelancers, researchers)
+- Product teams (product managers, UX researchers, market researchers)
+- Education sector (students, teachers, academic researchers)
+- Creative industries (designers, copywriters, marketers)
 
-### 3.2 关键用户故事映射
-
-| Epic | 用户故事 | 优先级 | 验收标准 |
-|------|---------|-------|---------|
-| 议题管理 | 作为一个用户，我能够创建和编辑讨论议题，以便开始新的讨论 | P0 | 议题文本长度支持10-2000字；支持保存草稿 |
-| 角色创建 | 作为一个用户，我能够自定义角色的背景、立场、性格，以便获得特定视角 | P0 | 支持设置5个维度：职业、年龄、性格、立场、表达风格 |
-| 角色生成 | 作为一个用户，我能够让系统根据议题自动生成角色，以便快速开始讨论 | P0 | 系统能够基于议题类型推荐3-7个角色配置 |
-| 实时观摩 | 作为一个用户，我能够实时观看角色讨论过程，以便了解观点的形成和演变 | P0 | 讨论内容实时展示，支持滚动查看历史消息 |
-| 讨论控制 | 作为一个用户，我能够在讨论过程中暂停、继续、加速，以便控制观看节奏 | P1 | 支持暂停/继续；支持2x、3x加速播放 |
-| 互动引导 | 作为一个用户，我能够在讨论中插入引导性问题，以便调整讨论方向 | P1 | 插入问题后角色能够响应并调整讨论方向 |
-| 报告生成 | 作为一个用户，我能够在讨论结束后获取结构化报告，以便快速获取核心洞察 | P0 | 报告包含：观点汇总、共识结论、争议点、建议方案 |
-| 历史查询 | 作为一个用户，我能够查看和管理历史讨论记录，以便回顾过往讨论 | P0 | 支持按时间、议题关键词搜索；支持查看完整讨论回放 |
-| 导出分享 | 作为一个用户，我能够导出讨论报告为PDF/Markdown，以便分享给团队 | P1 | 导出的报告格式美观，包含完整讨论过程和总结 |
-| 用户系统 | 作为一个新用户，我能够快速注册并登录平台，以便开始使用 | P0 | 支持邮箱注册；支持第三方登录（Google/GitHub） |
+**Geographic Scope**: Initially focus on Chinese users, later expand to global market
 
 ---
 
-## 4. 功能需求
+## 2. Target Users
 
-### 4.1 核心功能模块
+### 2.1 User Personas
 
-#### 模块1：用户系统 (User System)
+#### Primary User Group 1: Product Manager - Xiao Zhang
 
-**功能1.1：用户注册与登录**
+**Basic Information**:
+- Age: 28
+- Occupation: Internet company product manager
+- Experience: 4 years
 
-**需求描述**：
-- 支持邮箱+密码注册
-- 支持邮箱验证（防止滥用）
-- 支持第三方登录（Google、GitHub）
-- 支持找回密码功能
-- 记住登录状态（可选项）
+**Use Scenarios**:
+- Before requirement review, quickly verify feasibility of product ideas
+- When designing features, simulate reactions and needs of different user roles
+- During competitive analysis, evaluate competitor strategies from multiple angles
 
-**业务规则**：
-- 邮箱格式必须合法
-- 密码强度要求：至少8位，包含字母和数字
-- 同一IP地址24小时内最多注册3个账号（防刷）
-- 未验证邮箱的用户无法创建讨论
+**Core Needs**:
+- Rapidly obtain diverse perspectives, avoid thinking blind spots
+- Save time costs of organizing real user research
+- Obtain structured argumentation process for team reporting
 
-**界面要求**：
-- 简洁的注册/登录表单
-- 清晰的错误提示
-- 第三方登录按钮明显可见
+**Pain Points**:
+- Team internal discussions prone to groupthink
+- Organizing real focus groups is time-consuming and expensive (recruitment, venue, gifts)
+- Difficult to quickly obtain expert-level opinions
 
----
+#### Primary User Group 2: Independent Researcher - Professor Li
 
-**功能1.2：用户个人中心**
+**Basic Information**:
+- Age: 45
+- Occupation: Associate Professor, Philosophy Department
+- Experience: 15 years
 
-**需求描述**：
-- 查看和编辑个人资料（昵称、头像、简介）
-- 管理大模型API密钥
-- 查看使用统计（讨论次数、使用时长）
-- 管理订阅计划（如推出付费版）
+**Use Scenarios**:
+- When writing academic papers, simulate peer review opinions
+- Exploring philosophical topics, obtain perspectives from different schools of thought
+- Preparing lectures, designing classroom discussion topics
 
-**业务规则**：
-- API密钥加密存储
-- 支持多个API密钥管理（OpenAI、Claude、本地模型等）
-- 个人资料可选填，不强制
+**Core Needs**:
+- Simulate deep speculation processes of multiple experts
+- Explore multiple dimensions and possibilities of topics
+- Generate teaching cases and discussion materials
 
----
+**Pain Points**:
+- Difficult to find experts from different fields for cross-disciplinary discussions
+- Long cycle and high cost of academic exchanges
+- Need to quickly verify rationality of arguments
 
-#### 模块2：议题管理 (Topic Management)
+#### Primary User Group 3: Startup Founder - Mr. Wang
 
-**功能2.1：创建讨论议题**
+**Basic Information**:
+- Age: 35
+- Occupation: Early-stage startup founder
+- Experience: 10 years
 
-**需求描述**：
-- 提供议题输入框
-- 支持富文本编辑（加粗、列表、链接）
-- 支持添加背景描述、上下文信息
-- 支持上传相关附件（图片、文档）
-- 支持设置讨论预期时长（10/20/30/60分钟）
+**Use Scenarios**:
+- Business model validation, simulate multiple perspectives of investors, users, employees
+- Before decision-making, quickly obtain "devil's advocate" opposing views
+- Strategic planning, simulate market reactions and competitive landscape
 
-**输入规范**：
-- 议题标题：10-200字符
-- 议题描述：0-2000字符（可选）
-- 附件：最多5个，单个文件不超过10MB
+**Core Needs**:
+- Rapid stress testing of business ideas
+- Discover decision blind spots and potential risks
+- Obtain simulated feedback from different stakeholders
 
-**业务规则**：
-- 议题提交后可保存为草稿
-- 草稿不消耗API额度
-- 正式讨论开始后议题不可修改
+**Pain Points**:
+- Small team size, lack of diverse viewpoints
+- High cost of consulting services
+- Urgent decision-making timeline, need rapid validation
 
----
+### 2.2 User Segmentation
 
-**功能2.2：议题模板库**
-
-**需求描述**：
-- 提供预置议题模板
-- 支持用户保存自定义模板
-- 支持从模板快速创建讨论
-
-**预置模板类别**：
-- 产品评审类
-- 创意发想类
-- 学术研讨类
-- 决策支持类
-- 问题解决类
-
-**业务规则**：
-- 每个模板包含：议题框架、推荐角色配置、讨论引导问题
-- 用户可基于模板修改后创建新讨论
+| User Type | Usage Frequency | Willingness to Pay | Key Feature Requirements |
+|-----------|-----------------|-------------------|------------------------|
+| Individual User (Light) | 1-3 times/month | Low | Basic discussions, free character library |
+| Individual User (Heavy) | 2-5 times/week | Medium | Custom characters, history, export |
+| Enterprise Team | 5-10 times/week | High | Collaboration, enterprise character library, data management |
+| Education Institution | 10+ times/month | Medium-High | Teaching mode, batch discussions, student management |
 
 ---
 
-**功能2.3：历史议题管理**
+## 3. User Stories
 
-**需求描述**：
-- 查看历史讨论列表
-- 按时间、状态筛选
-- 搜索议题关键词
-- 删除或归档旧讨论
+### 3.1 Core User Journeys
 
-**业务规则**：
-- 保留历史讨论记录不少于90天
-- 删除的讨论进入回收站，30天后永久删除
-- 支持批量操作（批量删除、批量归档）
+**Journey 1: Rapid Product Feedback**
 
----
+> As a product manager, I want to quickly understand market reaction to new features so I can make adjustments before development.
 
-#### 模块3：角色系统 (Character System)
+**Steps**:
+1. Login to platform, click "Create New Discussion"
+2. Enter topic: "We plan to add AI recommendation feature to e-commerce App, users upload product photos and automatically recommend similar products"
+3. Select "Auto Generate Characters"
+4. System recommends character configuration: product manager, UI designer, technical engineer, regular user, data privacy expert
+5. Click "Start Discussion"
+6. Watch 5 characters debate feature value, technical feasibility, user experience, privacy risks in real-time
+7. After 15 minutes, discussion ends, view auto-generated report
+8. Report shows: high feature value but privacy risks need attention, recommend local AI solution
+9. Export PDF report, share with team
 
-**功能3.1：自定义角色创建**
+**Journey 2: Academic Topic Deep Dive**
 
-**需求描述**：
-- 提供角色配置表单
-- 支持设置多维度角色特征
-- 支持保存自定义角色模板
-- 支持从角色库导入角色
+> As a philosophy researcher, I want to explore "Whether AI has consciousness" to obtain perspectives from different schools of thought.
 
-**角色配置维度**：
-- **基本信息**：姓名、年龄、性别、职业/身份
-- **性格特征**：开放性、严谨性、批判性、乐观度（1-10分评分）
-- **知识背景**：专业领域、经验年限、代表性观点
-- **讨论立场**：支持/反对/中立/批判性探索
-- **表达风格**：正式/口语化/技术性/故事化
-- **行为模式**：主动发言/被动响应/平衡型
+**Steps**:
+1. Create discussion, enter topic: "Discuss possibility of AI consciousness from functionalism, dualism, and physicalism perspectives"
+2. Select "Custom Characters"
+3. Manually define three characters:
+   - Character 1: Functionalist, emphasizing computational theory of mind
+   - Character 2: Dualist, insisting on mind-body dualism
+   - Character 3: Physicalist, believing consciousness is physical process emergence
+4. Start discussion, watch deep speculation and debate among three parties
+5. Discover Character 2's "qualia" question triggers intense debate
+6. View discussion report, extract core controversy points and arguments from all sides
+7. Save discussion record as writing material
 
-**业务规则**：
-- 单场讨论可配置3-7个角色
-- 角色名称在单场讨论中不可重复
-- 支持角色预览，查看角色简介和示例发言
+**Journey 3: Startup Idea Stress Test**
 
----
+> As a startup founder, I want to test new business model risks and opportunities to improve business plan.
 
-**功能3.2：智能角色推荐**
+**Steps**:
+1. Enter topic: "I want to build an elderly door-to-door service platform, featuring 2-hour response"
+2. Select character template: "Startup Review Committee" (preset configuration)
+3. Characters include: angel investor, industry expert, financial advisor, target user representative, competitor
+4. Start discussion
+5. During observation, discover "2-hour response" difficult to achieve in tier 3-4 cities
+6. Pause discussion, insert guiding question: "What if implemented in phases, starting from tier-1 cities?"
+7. Characters adjust discussion direction, explore phased strategy
+8. Final report recommends: first establish benchmark in tier-1 cities, validate model then expand
+9. Adjust business plan based on discussion results
 
-**需求描述**：
-- 系统根据议题内容自动推荐角色配置
-- 提供多种推荐方案供用户选择
-- 用户可基于推荐方案进行调整
+### 3.2 Key User Story Mapping
 
-**推荐逻辑**：
-- 分析议题类型（产品、学术、商业、创意等）
-- 识别关键利益相关者（用户、开发者、决策者等）
-- 匹配预置角色模板
-- 生成3个推荐方案（保守型、平衡型、探索型）
-
-**示例**：
-- 议题："开发一个AI写作助手"
-- 推荐方案1（产品导向）：产品经理、UI设计师、目标用户、技术负责人
-- 推荐方案2（商业导向）：投资人、市场专家、竞争者、潜在客户
-- 推荐方案3（探索导向）：科幻作家、伦理学家、未来学家、普通用户
-
----
-
-**功能3.3：角色库管理**
-
-**需求描述**：
-- 系统预置100+优质角色模板
-- 支持用户搜索和浏览角色库
-- 支持用户收藏和评价角色
-- 支持用户分享自定义角色到社区（未来功能）
-
-**角色库分类**：
-- 按职业：产品经理、工程师、设计师、市场专家、投资人等
-- 按思维风格：批判性思维者、创新者、保守派、乐观派等
-- 按用户画像：年轻人、企业客户、技术专家、普通用户等
-- 按学科领域：哲学家、经济学家、心理学家、社会学家等
-
-**业务规则**：
-- 预置角色经过精心设计和测试，确保讨论质量
-- 用户可对角色进行评分和评论
-- 高分角色优先展示
+| Epic | User Story | Priority | Acceptance Criteria |
+|------|-----------|----------|---------------------|
+| Topic Management | As a user, I can create and edit discussion topics to start new discussions | P0 | Topic text supports 10-2000 characters; support saving drafts |
+| Character Creation | As a user, I can customize character background, stance, personality to obtain specific perspectives | P0 | Support setting 5 dimensions: occupation, age, personality, stance, expression style |
+| Character Generation | As a user, I can let system automatically generate characters based on topic to quickly start discussion | P0 | System can recommend 3-7 character configurations based on topic type |
+| Real-time Observation | As a user, I can watch character discussion process in real-time to understand viewpoint formation and evolution | P0 | Discussion content displays in real-time, support scrolling for history |
+| Discussion Control | As a user, I can pause, continue, accelerate during discussion to control viewing pace | P1 | Support pause/continue; support 2x, 3x accelerated playback |
+| Interactive Guidance | As a user, I can insert guiding questions during discussion to adjust direction | P1 | After inserting question, characters can respond and adjust discussion direction |
+| Report Generation | As a user, I can obtain structured report after discussion ends to quickly get core insights | P0 | Report contains: viewpoint summary, consensus conclusions, controversy points, recommendations |
+| History Query | As a user, I can view and manage historical discussion records to review past discussions | P0 | Support search by time, topic keywords; support viewing complete discussion replay |
+| Export Sharing | As a user, I can export discussion report as PDF/Markdown to share with team | P1 | Exported report format beautiful, contains complete discussion process and summary |
+| User System | As a new user, I can quickly register and login platform to start using | P0 | Support email registration; support third-party login (Google/GitHub) |
 
 ---
 
-#### 模块4：讨论引擎 (Discussion Engine)
+## 4. Functional Requirements
 
-**功能4.1：多角色讨论驱动**
+### 4.1 Core Function Modules
 
-**需求描述**：
-- 系统驱动多个虚拟角色围绕议题展开讨论
-- 角色能够相互回应、质疑、补充、修正观点
-- 讨论有清晰的逻辑结构和递进深度
-- 避免重复和无效对话
+#### Module 1: User System (User System)
 
-**讨论阶段控制**：
-1. **开场阶段**（1-2轮）：角色自我介绍，阐述初步立场
-2. **展开阶段**（3-8轮）：角色之间相互回应，深入论证
-3. **辩论阶段**（2-5轮）：针对分歧点展开交锋
-4. **收尾阶段**（1-2轮）：总结观点，尝试达成共识或明确分歧
+**Feature 1.1: User Registration and Login**
 
-**质量保证机制**：
-- 每个角色发言长度控制在100-500字
-- 角色发言需引用前序观点，避免自说自话
-- 系统检测重复内容，引导角色转向新角度
-- 避免单一角色主导，平衡各角色发言次数
+**Requirement Description**:
+- Support email + password registration
+- Support email verification (prevent abuse)
+- Support third-party login (Google, GitHub)
+- Support password recovery
+- Remember login status (optional)
 
-**业务规则**：
-- 单场讨论总轮数：10-20轮（用户可配置）
-- 每轮发言间隔：2-5秒（模拟真实讨论节奏）
-- 讨论时长：用户预设（默认20分钟）
+**Business Rules**:
+- Email format must be valid
+- Password strength requirement: at least 8 characters, including letters and numbers
+- Same IP address maximum 3 account registrations in 24 hours (anti-abuse)
+- Unverified email users cannot create discussions
 
----
-
-**功能4.2：讨论模式配置**
-
-**需求描述**：
-- 支持多种讨论模式
-- 用户可根据需求选择合适模式
-
-**讨论模式类型**：
-
-**模式A：自由讨论模式（默认）**
-- 角色自由发言，相互回应
-- 系统维护发言平衡和逻辑连贯性
-- 适用于：开放式议题探索
-
-**模式B：结构化辩论模式**
-- 分为正方、反方、中立方
-- 每轮由系统指定发言角色
-- 适用于：二元对立议题（如"是否应该X"）
-
-**模式C：创意发散模式**
-- 基于"yes, and"原则
-- 角色在他人观点基础上继续创新
-- 禁止直接否定，只能延伸
-- 适用于：创意发想、方案设计
-
-**模式D：共识达成模式**
-- 目标是寻找共同点
-- 角色主动妥协和整合观点
-- 适用于：团队决策、冲突解决
+**Interface Requirements**:
+- Clean registration/login form
+- Clear error prompts
+- Third-party login buttons clearly visible
 
 ---
 
-**功能4.3：实时观摩交互**
+**Feature 1.2: User Personal Center**
 
-**需求描述**：
-- 用户以"观察者"身份实时观看讨论
-- 界面采用聊天对话形式
-- 显示角色头像、姓名、发言内容
-- 支持滚动查看历史消息
+**Requirement Description**:
+- View and edit personal profile (nickname, avatar, bio)
+- Manage LLM API keys
+- View usage statistics (discussion count, usage duration)
+- Manage subscription plans (if paid version launched)
 
-**界面元素**：
-- 讨论区：展示角色对话
-- 角色列表：显示当前所有角色及发言状态
-- 讨论进度条：显示当前轮次和预计剩余时间
-- 控制按钮：暂停、继续、插入问题、结束讨论
-
-**交互特性**：
-- 新消息自动滚动到可视区域（如果用户在查看历史）
-- 角色发言时有轻微动画效果
-- 支持点击角色头像查看角色详情
+**Business Rules**:
+- API keys encrypted storage
+- Support multiple API key management (OpenAI, Claude, local models, etc.)
+- Personal profile optional, not mandatory
 
 ---
 
-**功能4.4：讨论过程控制**
+#### Module 2: Topic Management (Topic Management)
 
-**需求描述**：
-- 用户可在讨论过程中进行干预
-- 支持暂停、继续、加速
-- 支持插入引导性问题
-- 支持提前结束讨论
+**Feature 2.1: Create Discussion Topic**
 
-**控制功能详细说明**：
+**Requirement Description**:
+- Provide topic input box
+- Support rich text editing (bold, lists, links)
+- Support adding background description, context information
+- Support uploading relevant attachments (images, documents)
+- Support setting expected discussion duration (10/20/30/60 minutes)
 
-**暂停/继续**：
-- 暂停后停止生成新消息
-- 用户可查看历史消息、做笔记
-- 继续后讨论无缝衔接
+**Input Specifications**:
+- Topic title: 10-200 characters
+- Topic description: 0-2000 characters (optional)
+- Attachments: maximum 5 files, single file not exceeding 10MB
 
-**加速播放**：
-- 支持1.5x、2x、3x加速
-- 减少消息间隔时间
-- 不影响消息内容质量
-
-**插入引导问题**：
-- 用户可随时输入问题
-- 系统将问题加入下一个讨论轮次
-- 角色针对引导问题进行回应
-- 用途：调整讨论方向、深化特定议题
-
-**结束讨论**：
-- 手动结束讨论
-- 系统立即生成报告（基于已讨论内容）
-- 讨论时长少于5轮时提示用户确认
+**Business Rules**:
+- Topic can be saved as draft after submission
+- Drafts do not consume API quota
+- Topic cannot be modified after official discussion starts
 
 ---
 
-#### 模块5：报告生成 (Report Generation)
+**Feature 2.2: Topic Template Library**
 
-**功能5.1：讨论总结报告**
+**Requirement Description**:
+- Provide preset topic templates
+- Support user saving custom templates
+- Support quickly creating discussions from templates
 
-**需求描述**：
-- 讨论结束后自动生成结构化报告
-- 报告包含完整讨论过程和核心洞察
-- 支持在线查看和导出
+**Preset Template Categories**:
+- Product Review
+- Creative Ideation
+- Academic Seminar
+- Decision Support
+- Problem Solving
 
-**报告结构**：
-
-**1. 讨论概览**
-- 议题标题和描述
-- 参与角色列表
-- 讨论时长、轮次统计
-- 讨论时间戳
-
-**2. 观点汇总**
-- 按角色整理主要观点
-- 每个角色的核心论据和支持数据
-- 角色立场演变轨迹（如有变化）
-
-**3. 共识结论**
-- 角色们达成一致的观点
-- 共同认可的建议或方案
-- 支持共识的关键论据
-
-**4. 争议焦点**
-- 角色间的主要分歧点
-- 各方对立的观点和论据
-- 未解决的争议问题
-
-**5. 洞察与建议**
-- 系统提炼的关键洞察
-- 可执行的下一步建议
-- 潜在风险和机会点
-
-**6. 讨论实录**
-- 完整的讨论对话记录
-- 按时间顺序排列
-- 支持关键词高亮
-
-**业务规则**：
-- 报告生成时间 < 10秒
-- 报告长度：议题简单时1000字，复杂时3000-5000字
-- 支持报告更新（如用户继续讨论）
+**Business Rules**:
+- Each template contains: topic framework, recommended character configuration, discussion guiding questions
+- Users can modify based on template to create new discussion
 
 ---
 
-**功能5.2：报告可视化**
+**Feature 2.3: Historical Topic Management**
 
-**需求描述**：
-- 将讨论结果以图表形式呈现
-- 提升信息吸收效率
+**Requirement Description**:
+- View historical discussion list
+- Filter by time, status
+- Search topic keywords
+- Delete or archive old discussions
 
-**可视化元素**：
-
-**观点分布图**：
-- 展示各角色的立场分布（支持/反对/中立）
-- 用雷达图展示角色在多个维度的评分
-
-**争议热力图**：
-- 标识讨论中的高频争议点
-- 展示各争议点的讨论热度
-
-**立场演变图**：
-- 展示角色立场随时间的变化（如有）
-- 用折线图或桑基图呈现
-
-**关键词云图**：
-- 提取讨论中的高频关键词
-- 展示核心概念和主题
-
-**业务规则**：
-- 可视化图表可导出为图片
-- 图表配色美观，支持深色模式
+**Business Rules**:
+- Retain historical discussion records for at least 90 days
+- Deleted discussions enter recycle bin, permanently deleted after 30 days
+- Support batch operations (batch delete, batch archive)
 
 ---
 
-**功能5.3：报告导出与分享**
+#### Module 3: Character System (Character System)
 
-**需求描述**：
-- 支持多种格式导出报告
-- 支持生成分享链接
-- 支持嵌入外部系统
+**Feature 3.1: Custom Character Creation**
 
-**导出格式**：
-- PDF（适合打印和分享）
-- Markdown（适合开发者）
-- 纯文本（适合进一步编辑）
-- JSON（适合API集成）
+**Requirement Description**:
+- Provide character configuration form
+- Support setting multi-dimensional character traits
+- Support saving custom character templates
+- Support importing characters from character library
 
-**分享功能**：
-- 生成只读分享链接
-- 支持设置访问密码
-- 支持设置链接有效期（1天/7天/30天/永久）
-- 支持查看链接访问统计
+**Character Configuration Dimensions**:
+- **Basic Information**: Name, age, gender, occupation/identity
+- **Personality Traits**: Openness, rigor, critical thinking, optimism (1-10 score)
+- **Knowledge Background**: Professional field, experience years, representative views
+- **Discussion Stance**: Support/oppose/neutral/critical exploration
+- **Expression Style**: Formal/casual/technical/storytelling
+- **Behavior Pattern**: Active speaking/passive response/balanced
 
-**嵌入功能**（企业版）：
-- 提供嵌入代码
-- 支持嵌入Notion、Confluence等知识库
-- 支持嵌入企业内部系统
+**Business Rules**:
+- Single discussion can configure 3-7 characters
+- Character names cannot be duplicated in single discussion
+- Support character preview, view character profile and sample speech
 
 ---
 
-#### 模块6：API管理 (API Management)
+**Feature 3.2: Intelligent Character Recommendation**
 
-**功能6.1：大模型API配置**
+**Requirement Description**:
+- System automatically recommends character configurations based on topic content
+- Provide multiple recommendation options for user selection
+- Users can adjust based on recommended options
 
-**需求描述**：
-- 用户自行提供大模型API密钥
-- 支持多个主流大模型提供商
-- 灵活切换不同模型
+**Recommendation Logic**:
+- Analyze topic type (product, academic, business, creative, etc.)
+- Identify key stakeholders (users, developers, decision makers, etc.)
+- Match preset character templates
+- Generate 3 recommendation options (conservative, balanced, exploratory)
 
-**支持的API提供商**：
+**Example**:
+- Topic: "Develop an AI writing assistant"
+- Recommendation Option 1 (product-oriented): product manager, UI designer, target user, technical lead
+- Recommendation Option 2 (business-oriented): investor, market expert, competitor, potential customer
+- Recommendation Option 3 (exploratory): sci-fi writer, ethicist, futurist, ordinary user
+
+---
+
+**Feature 3.3: Character Library Management**
+
+**Requirement Description**:
+- System presets 100+ quality character templates
+- Support user searching and browsing character library
+- Support user favoriting and rating characters
+- Support user sharing custom characters to community (future feature)
+
+**Character Library Categories**:
+- By occupation: product manager, engineer, designer, market expert, investor, etc.
+- By thinking style: critical thinker, innovator, conservative, optimist, etc.
+- By user persona: youth, enterprise customer, technical expert, ordinary user, etc.
+- By academic field: philosopher, economist, psychologist, sociologist, etc.
+
+**Business Rules**:
+- Preset characters carefully designed and tested to ensure discussion quality
+- Users can rate and comment on characters
+- High-rated characters displayed first
+
+---
+
+#### Module 4: Discussion Engine (Discussion Engine)
+
+**Feature 4.1: Multi-Character Discussion Drive**
+
+**Requirement Description**:
+- System drives multiple virtual characters to discuss around topic
+- Characters can respond, question, supplement, revise viewpoints
+- Discussion has clear logical structure and progressive depth
+- Avoid repetition and invalid dialogue
+
+**Discussion Phase Control**:
+1. **Opening Phase** (1-2 rounds): Characters introduce themselves, state initial positions
+2. **Development Phase** (3-8 rounds): Characters respond to each other, deep arguments
+3. **Debate Phase** (2-5 rounds): Target disagreements for交锋
+4. **Closing Phase** (1-2 rounds): Summarize viewpoints, attempt consensus or clarify differences
+
+**Quality Assurance Mechanisms**:
+- Each character speech length controlled at 100-500 words
+- Character speeches must reference previous points, avoid monologue
+- System detects repetitive content, guides characters to new angles
+- Avoid single character dominance, balance character speech counts
+
+**Business Rules**:
+- Single discussion total rounds: 10-20 rounds (user configurable)
+- Each round speech interval: 2-5 seconds (simulating real discussion rhythm)
+- Discussion duration: user preset (default 20 minutes)
+
+---
+
+**Feature 4.2: Discussion Mode Configuration**
+
+**Requirement Description**:
+- Support multiple discussion modes
+- Users can choose appropriate mode based on needs
+
+**Discussion Mode Types**:
+
+**Mode A: Free Discussion Mode (default)**
+- Characters speak freely, respond to each other
+- System maintains speech balance and logical coherence
+- Applicable to: Open topic exploration
+
+**Mode B: Structured Debate Mode**
+- Divided into pro, con, neutral sides
+- Each round system specifies speaking character
+- Applicable to: Binary opposition topics (e.g., "Should we do X")
+
+**Mode C: Creative Divergence Mode**
+- Based on "yes, and" principle
+- Characters continue innovation based on others' viewpoints
+- Prohibit direct negation, only extension
+- Applicable to: Creative ideation, solution design
+
+**Mode D: Consensus Building Mode**
+- Goal is finding common ground
+- Characters actively compromise and integrate viewpoints
+- Applicable to: Team decision-making, conflict resolution
+
+---
+
+**Feature 4.3: Real-Time Observation Interaction**
+
+**Requirement Description**:
+- User watches discussion as "observer"
+- Interface uses chat dialogue form
+- Displays character avatar, name, speech content
+- Supports scrolling to view historical messages
+
+**Interface Elements**:
+- Discussion area: displays character dialogue
+- Character list: displays current all characters and speech status
+- Discussion progress bar: displays current round and estimated remaining time
+- Control buttons: pause, continue, insert question, end discussion
+
+**Interaction Features**:
+- New messages automatically scroll to visible area (if user viewing history)
+- Slight animation effect when character speaking
+- Support clicking character avatar to view character details
+
+---
+
+**Feature 4.4: Discussion Process Control**
+
+**Requirement Description**:
+- Users can intervene during discussion
+- Support pause, continue, accelerate
+- Support inserting guiding questions
+- Support ending discussion early
+
+**Control Function Details**:
+
+**Pause/Continue**:
+- After pause, stop generating new messages
+- Users can view historical messages, take notes
+- After continue, discussion seamlessly resumes
+
+**Accelerated Playback**:
+- Support 1.5x, 2x, 3x acceleration
+- Reduce message interval time
+- Does not affect message content quality
+
+**Insert Guiding Question**:
+- Users can input questions at any time
+- System adds question to next discussion round
+- Characters respond to guiding question
+- Use: Adjust discussion direction, deepen specific topics
+
+**End Discussion**:
+- Manually end discussion
+- System immediately generates report (based on discussed content)
+- Prompt user confirmation if discussion less than 5 rounds
+
+---
+
+#### Module 5: Report Generation (Report Generation)
+
+**Feature 5.1: Discussion Summary Report**
+
+**Requirement Description**:
+- Automatically generate structured report after discussion ends
+- Report contains complete discussion process and core insights
+- Support online viewing and export
+
+**Report Structure**:
+
+**1. Discussion Overview**
+- Topic title and description
+- Participant character list
+- Discussion duration, round statistics
+- Discussion timestamp
+
+**2. Viewpoint Summary**
+- Organize main viewpoints by character
+- Each character's core arguments and supporting data
+- Character position evolution trajectory (if changed)
+
+**3. Consensus Conclusions**
+- Viewpoints characters agree on
+- Jointly recognized recommendations or solutions
+- Key arguments supporting consensus
+
+**4. Controversy Points**
+- Main disagreement points between characters
+- Opposing viewpoints and arguments from all sides
+- Unresolved controversial questions
+
+**5. Insights and Recommendations**
+- Key insights extracted by system
+- Actionable next step recommendations
+- Potential risks and opportunity points
+
+**6. Discussion Record**
+- Complete discussion dialogue record
+- Chronologically ordered
+- Support keyword highlighting
+
+**Business Rules**:
+- Report generation time < 10 seconds
+- Report length: 1000 words for simple topics, 3000-5000 words for complex topics
+- Support report updates (if user continues discussion)
+
+---
+
+**Feature 5.2: Report Visualization**
+
+**Requirement Description**:
+- Present discussion results in chart form
+- Improve information absorption efficiency
+
+**Visualization Elements**:
+
+**Viewpoint Distribution Chart**:
+- Display position distribution of each character (support/oppose/neutral)
+- Use radar chart to display character scores on multiple dimensions
+
+**Controversy Heatmap**:
+- Mark high-frequency controversy points in discussion
+- Display discussion heat of each controversy point
+
+**Position Evolution Chart**:
+- Display character position changes over time (if any)
+- Present with line chart or Sankey diagram
+
+**Keyword Cloud**:
+- Extract high-frequency keywords from discussion
+- Display core concepts and themes
+
+**Business Rules**:
+- Visualization charts can be exported as images
+- Chart color scheme beautiful, support dark mode
+
+---
+
+**Feature 5.3: Report Export and Sharing**
+
+**Requirement Description**:
+- Support multiple format report export
+- Support generating share links
+- Support embedding external systems
+
+**Export Formats**:
+- PDF (suitable for printing and sharing)
+- Markdown (suitable for developers)
+- Plain text (suitable for further editing)
+- JSON (suitable for API integration)
+
+**Sharing Features**:
+- Generate read-only share link
+- Support setting access password
+- Support setting link validity period (1 day/7 days/30 days/permanent)
+- Support viewing link access statistics
+
+**Embedding Features** (Enterprise Edition):
+- Provide embed code
+- Support embedding Notion, Confluence and other knowledge bases
+- Support embedding enterprise internal systems
+
+---
+
+#### Module 6: API Management (API Management)
+
+**Feature 6.1: LLM API Configuration**
+
+**Requirement Description**:
+- Users provide their own LLM API keys
+- Support multiple mainstream LLM providers
+- Flexibly switch between different models
+
+**Supported API Providers**:
 - OpenAI (GPT-4, GPT-3.5)
 - Anthropic (Claude 3.5 Sonnet, Claude 3 Opus)
-- 其他兼容OpenAI格式的API（如本地部署的模型）
+- Other OpenAI-compatible APIs (e.g., locally deployed models)
 
-**配置项**：
+**Configuration Items**:
 - API Key
-- API Base URL（可选，用于代理或本地模型）
-- 模型名称（如gpt-4, claude-3-5-sonnet-20241022）
-- 温度参数（0.0-1.0，控制创造性，默认0.7）
-- 最大Token数（根据模型自动建议）
+- API Base URL (optional, for proxy or local models)
+- Model Name (e.g., gpt-4, claude-3-5-sonnet-20241022)
+- Temperature Parameter (0.0-1.0, controls creativity, default 0.7)
+- Max Token Count (automatically suggested based on model)
 
-**业务规则**：
-- API密钥加密存储（AES-256）
-- API密钥仅用于用户自己的讨论
-- 不在服务器端缓存API密钥明文
-- 提供API使用量统计（调用次数、Token消耗）
-
----
-
-**功能6.2：API使用监控**
-
-**需求描述**：
-- 实时监控API调用状态
-- 显示API使用量和成本
-- 异常情况提示
-
-**监控指标**：
-- 成功调用次数
-- 失败调用次数及错误原因
-- Token消耗统计
-- 预估成本（基于各厂商定价）
-
-**异常处理**：
-- API密钥无效或过期时提示用户
-- API额度不足时提前警告
-- 网络错误时自动重试（最多3次）
-- 超时时提示用户检查网络或切换模型
+**Business Rules**:
+- API keys encrypted storage (AES-256)
+- API keys only used for user's own discussions
+- Do not cache API key plaintext on server
+- Provide API usage statistics (call count, Token consumption)
 
 ---
 
-### 4.2 增值功能模块
+**Feature 6.2: API Usage Monitoring**
 
-#### 模块7：讨论分析与优化 (Discussion Analytics)
+**Requirement Description**:
+- Real-time monitoring of API call status
+- Display API usage and costs
+- Exception situation prompts
 
-**功能7.1：讨论质量评分**
+**Monitoring Metrics**:
+- Successful call count
+- Failed call count and error reasons
+- Token consumption statistics
+- Estimated cost (based on vendor pricing)
 
-**需求描述**：
-- 系统自动评估讨论质量
-- 给出多维度评分和建议
-
-**评分维度**：
-- **深度得分**（0-100）：论证的逻辑深度和细致程度
-- **多样性得分**（0-100）：观点的多样性和差异化程度
-- **建设性得分**（0-100）：结论的可执行性和实用性
-- **连贯性得分**（0-100）：讨论的逻辑连贯性和结构清晰度
-
-**改进建议**：
-- 针对低分维度给出具体建议
-- 如："多样性得分较低，建议增加批判性角色"
-- 或："建设性得分较低，建议在讨论收尾阶段引导角色提出具体建议"
+**Exception Handling**:
+- Prompt user when API key invalid or expired
+- Advance warning when API quota insufficient
+- Automatically retry when network error (maximum 3 times)
+- Prompt user to check network or switch model when timeout
 
 ---
 
-**功能7.2：对比分析**
+### 4.2 System Architecture
 
-**需求描述**：
-- 支持同一议题用不同角色配置进行多次讨论
-- 对比分析多次讨论的差异
-
-**对比维度**：
-- 观点差异对比
-- 结论差异对比
-- 角色配置对讨论结果的影响
-
-**应用场景**：
-- 验证某个结论的稳健性（不同角色组合是否得出相似结论）
-- 探索不同利益相关者视角的差异
-- 寻找更优的角色配置方案
-
----
-
-#### 模块8：协作与共享 (Collaboration)
-
-**功能8.1：团队工作区**
-
-**需求描述**：
-- 支持创建团队空间
-- 团队成员共享讨论记录
-- 统一管理API密钥（企业版）
-
-**功能特性**：
-- 团队成员邀请和管理
-- 团队讨论库共享
-- 团队角色库共享
-- 团队使用统计
-
-**权限管理**：
-- 所有者：完全控制权限
-- 管理员：管理讨论和成员
-- 成员：查看和创建讨论
-- 访客：仅查看指定讨论
-
----
-
-**功能8.2：评论与批注**
-
-**需求描述**：
-- 支持在讨论报告中添加评论
-- 团队成员可协作批注
-
-**功能特性**：
-- 对特定发言添加评论
-- @提及其他成员
-- 评论通知
-- 评论导出
-
----
-
-#### 模块9：高级角色系统 (Advanced Characters)
-
-**功能9.1：角色进化学习**
-
-**需求描述**：
-- 角色根据历史讨论"学习"和进化
-- 角色保留对话记忆（在同一议题系列中）
-
-**应用场景**：
-- 连续讨论同一项目的多个议题时，角色"记住"之前的讨论内容
-- 角色在后续讨论中引用之前的观点
-- 模拟真实的长期协作关系
-
-**技术实现**：
-- 使用向量数据库存储角色历史发言
-- 在生成新回复时检索相关历史
-- 通过Prompt Engineering保持角色一致性
-
----
-
-**功能9.2：真实人物模拟**
-
-**需求描述**：
-- 基于真实人物的言论资料创建虚拟角色
-- 模拟历史人物、专家、意见领袖的思维方式
-
-**应用场景**：
-- 学术讨论：模拟亚里士多德、康德、维特根斯坦等哲学家
-- 商业分析：模拟马斯克、巴菲特、乔布斯等企业家
-- 历史研究：模拟历史人物对现代议题的看法
-
-**实现方式**：
-- 用户上传真实人物的代表性文本（著作、演讲、采访）
-- 系统分析文本提取思维模式和表达风格
-- 生成角色配置
-
-**注意事项**：
-- 明确标注为"模拟角色"，避免误导
-- 尊重人物肖像权和名誉权
-
----
-
-#### 模块10：智能辅助 (AI Assistance)
-
-**功能10.1：议题智能分析**
-
-**需求描述**：
-- 用户输入议题后，系统自动分析议题特征
-- 推荐最佳讨论策略
-
-**分析维度**：
-- 议题类型识别（产品决策、学术探讨、创意发想等）
-- 关键利益相关者识别
-- 潜在争议点预测
-- 推荐讨论模式
-- 推荐角色配置
-- 建议讨论引导问题
-
-**输出示例**：
-```
-议题分析结果：
-- 议题类型：产品决策类
-- 复杂度：中等
-- 建议讨论模式：结构化辩论模式
-- 推荐角色：产品经理、目标用户、技术负责人、市场专家、竞争对手代表
-- 预计讨论时长：20分钟
-- 潜在争议点：技术可行性 vs 用户需求
-```
-
----
-
-**功能10.2：讨论引导助手**
-
-**需求描述**：
-- AI助手在讨论过程中给出引导建议
-- 帮助用户优化讨论质量
-
-**辅助功能**：
-- 当讨论陷入僵局时，建议引导问题
-- 当某个观点被忽略时，提示用户关注
-- 当讨论偏离主题时，建议调整方向
-- 实时分析讨论质量，给出改进建议
-
-**交互方式**：
-- 侧边栏显示建议
-- 用户可选择性采纳
-- 不打扰主讨论流程
-
----
-
-### 4.3 功能交互流程
-
-#### 流程1：创建并开始讨论
+#### 4.2.1 High-Level Architecture Diagram
 
 ```
-1. 用户登录平台
-2. 点击"创建新讨论"
-3. 输入议题内容
-4. 选择角色配置方式（自定义/自动生成）
-5. 如选择自定义：
-   a. 创建或选择角色（3-7个）
-   b. 配置角色特征
-   c. 预览角色
-6. 如选择自动生成：
-   a. 系统分析议题
-   b. 展示3个推荐方案
-   c. 用户选择方案（可选调整）
-7. 选择讨论模式（默认自由讨论）
-8. 设置讨论时长（默认20分钟）
-9. 确认API配置（如未配置则提示）
-10. 点击"开始讨论"
-11. 进入实时观摩界面
+┌─────────────────────────────────────────────────────────────────┐
+│                         Client Layer                            │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │         Frontend (Vue 3 + Pinia + Socket.IO)              │ │
+│  └────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                 │
+                                 │ HTTPS/WSS
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      Application Layer                          │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │              API Gateway (FastAPI)                         │ │
+│  │  - Authentication (JWT)                                    │ │
+│  │  - Rate Limiting                                           │ │
+│  │  - Request Routing                                         │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                 │                                │
+│           ┌─────────────────────┼─────────────────────┐         │
+│           ▼                     ▼                     ▼         │
+│  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐    │
+│  │  REST API      │  │   WebSocket    │  │ Background     │    │
+│  │  Endpoints     │  │   Handler      │  │ Workers        │    │
+│  └────────────────┘  └────────────────┘  └────────────────┘    │
+└─────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Service Layer                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
+│  │  User        │  │  Character   │  │  Discussion          │ │
+│  │  Service     │  │  Service     │  │  Engine Service      │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘ │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
+│  │  Topic       │  │  Report      │  │  LLM Orchestrator    │ │
+│  │  Service     │  │  Generator   │  │  Service             │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      External Services                          │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
+│  │  OpenAI API  │  │  Anthropic   │  │  OpenAI-Compatible   │ │
+│  │  (User Key)  │  │  API         │  │  APIs                │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
+                                 │
+                                 ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       Data Layer                                │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────────┐ │
+│  │ PostgreSQL   │  │    Redis     │  │  Vector DB           │ │
+│  │ (Primary DB) │  │ (Cache +     │  │  (Character Memory)  │ │
+│  │              │  │  Pub/Sub)    │  │  - P2 Feature        │ │
+│  └──────────────┘  └──────────────┘  └──────────────────────┘ │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-#### 流程2：观看讨论并交互
+#### 4.2.2 Core Components and Responsibilities
 
-```
-1. 观摩界面加载，显示角色列表和讨论区
-2. 角色开始轮流发言
-3. 新消息实时显示
-4. 用户可随时：
-   - 暂停/继续讨论
-   - 调整播放速度
-   - 查看角色详情
-   - 插入引导问题
-   - 结束讨论
-5. 讨论自动结束或用户手动结束
-6. 自动跳转到报告页面
+**1. API Gateway**
+- **Responsibility**: Entry point for all client requests, handles authentication, rate limiting, and routing
+- **Key Features**:
+  - JWT token verification
+  - Per-endpoint rate limiting (using Redis)
+  - Request/response logging
+  - CORS handling
+
+**2. REST API Endpoints**
+- **Responsibility**: Handle stateless HTTP requests for CRUD operations
+- **Key Endpoints**:
+  - Authentication: `/api/auth/*`
+  - Users: `/api/users/*`
+  - Topics: `/api/topics/*`
+  - Characters: `/api/characters/*`
+  - Discussions: `/api/discussions/*`
+  - Reports: `/api/reports/*`
+
+**3. WebSocket Handler**
+- **Responsibility**: Manage real-time bidirectional communication for active discussions
+- **Key Features**:
+  - Connection lifecycle management
+  - Message broadcasting to discussion participants
+  - Control command handling (pause, resume, inject question)
+  - Automatic reconnection support
+  - Redis Pub/Sub integration for horizontal scaling
+
+**4. Background Workers**
+- **Responsibility**: Execute async tasks that don't block main request flow
+- **Key Tasks**:
+  - Report generation after discussion completion
+  - Email notifications
+  - Data archival jobs
+  - Analytics processing
+
+**5. Discussion Engine Service** (Most Critical Component)
+- **Responsibility**: Orchestrate multi-character discussions, manage state machine
+- **Key Responsibilities**:
+  - Coordinate multiple LLM API calls
+  - Manage discussion phases (opening, development, debate, closing)
+  - Handle streaming responses for real-time delivery
+  - Implement discussion modes (free, structured, creative, consensus)
+  - Persist discussion state for recovery
+  - Error handling and retry logic
+
+**6. LLM Orchestrator Service**
+- **Responsibility**: Abstract and manage multiple LLM provider integrations
+- **Key Features**:
+  - Provider-agnostic interface
+  - Automatic retry with exponential backoff
+  - Rate limiting per provider
+  - Cost tracking and budget management
+  - Fallback mechanisms
+  - Token usage optimization
+
+**7. User Service**
+- **Responsibility**: User authentication, profile management, API key storage
+- **Key Features**:
+  - Registration/login (email + OAuth)
+  - API key encryption/decryption (AES-256)
+  - User preferences management
+  - Usage statistics tracking
+
+**8. Character Service**
+- **Responsibility**: Character template management and configuration
+- **Key Features**:
+  - CRUD for custom characters
+  - Preset character library (100+ templates)
+  - Character recommendation algorithm
+  - Character rating and popularity tracking
+
+**9. Report Generator Service**
+- **Responsibility**: Generate structured insights from completed discussions
+- **Key Features**:
+  - Multi-section report generation (overview, viewpoints, consensus, controversies)
+  - Visualization data preparation
+  - Export to multiple formats (PDF, Markdown, JSON)
+  - Asynchronous generation with status tracking
+
+**10. Topic Service**
+- **Responsibility**: Topic CRUD operations and template management
+- **Key Features**:
+  - Topic creation and editing
+  - Template library management
+  - Draft saving and retrieval
+  - Search and filtering
+
+#### 4.2.3 Technology Stack Justification
+
+**Backend - FastAPI**
+- **Why**: Native async/await support for concurrent LLM calls, automatic OpenAPI docs, type hints with Pydantic
+- **WebSocket Support**: Built-in WebSocket handling for real-time discussions
+- **Performance**: Comparable to Node.js for I/O-bound workloads with better maintainability
+
+**Frontend - Vue 3**
+- **Why**: Composition API superior for complex state management, smaller bundle size than React, excellent TypeScript support
+- **State Management**: Pinia provides simpler API than Vuex with better TypeScript support
+- **Real-time**: Socket.IO client with automatic reconnection and fallback to polling
+
+**Database - PostgreSQL**
+- **Why**: ACID compliance for transactional data, JSONB for flexible character configurations, pgvector extension for future vector similarity
+- **Full-text Search**: Built-in tsvector for efficient message search
+- **Reliability**: Proven track record, excellent tooling
+
+**Cache - Redis**
+- **Why**: Fast in-memory caching for active discussion state, pub/sub for WebSocket scaling, rate limiting
+- **Session Management**: Store active discussion sessions with TTL
+- **Scalability**: Enables horizontal scaling of WebSocket servers
+
+**Vector Database (P2)**
+- **Options**: Qdrant or Weaviate for character memory retrieval
+- **Use Case**: Enable characters to remember and reference past discussions
+- **Timing**: P2 feature, not needed for MVP
+
+**Infrastructure**
+- **Docker + Docker Compose**: Local development environment setup
+- **Nginx**: Reverse proxy with WebSocket support
+- **Prometheus + Grafana**: Monitoring and metrics visualization
+- **ELK Stack**: Log aggregation and analysis
+
+---
+
+### 4.3 Data Architecture
+
+#### 4.3.1 Database Schema Overview
+
+**Core Tables**
+
+```sql
+-- Users Table
+users (
+    id: UUID (PK)
+    email: VARCHAR(255) UNIQUE
+    password_hash: VARCHAR(255) -- NULL for OAuth-only users
+    name: VARCHAR(100)
+    avatar_url: TEXT
+    bio: TEXT
+    email_verified: BOOLEAN
+    auth_provider: VARCHAR(50) -- 'email', 'google', 'github'
+    provider_id: VARCHAR(255) -- OAuth provider user ID
+    created_at: TIMESTAMP
+    updated_at: TIMESTAMP
+    last_login_at: TIMESTAMP
+    deleted_at: TIMESTAMP -- Soft delete
+)
+
+-- User API Keys (Encrypted storage)
+user_api_keys (
+    id: UUID (PK)
+    user_id: UUID (FK → users.id)
+    provider: VARCHAR(50) -- 'openai', 'anthropic', 'custom'
+    key_name: VARCHAR(100)
+    encrypted_key: TEXT -- AES-256 encrypted
+    api_base_url: TEXT -- Custom endpoint URL
+    default_model: VARCHAR(100)
+    is_active: BOOLEAN
+    created_at: TIMESTAMP
+    last_used_at: TIMESTAMP
+)
+
+-- Topics (议题)
+topics (
+    id: UUID (PK)
+    user_id: UUID (FK → users.id)
+    title: VARCHAR(200)
+    description: TEXT
+    context: TEXT -- Additional background information
+    attachments: JSONB -- Array of file metadata
+    status: VARCHAR(20) -- 'draft', 'ready', 'in_discussion', 'completed'
+    template_id: UUID -- If created from template
+    created_at: TIMESTAMP
+    updated_at: TIMESTAMP
+)
+
+-- Characters (角色)
+characters (
+    id: UUID (PK)
+    user_id: UUID (FK → users.id) -- NULL for system templates
+    name: VARCHAR(100)
+    avatar_url: TEXT
+    is_template: BOOLEAN
+    is_public: BOOLEAN -- For P2 character marketplace
+    config: JSONB -- Character configuration (see structure below)
+    usage_count: INTEGER
+    rating_avg: DECIMAL(3,2)
+    rating_count: INTEGER
+    created_at: TIMESTAMP
+    updated_at: TIMESTAMP
+)
+
+-- Discussions (讨论会话)
+discussions (
+    id: UUID (PK)
+    topic_id: UUID (FK → topics.id)
+    user_id: UUID (FK → users.id)
+    discussion_mode: VARCHAR(20) -- 'free', 'structured', 'creative', 'consensus'
+    max_rounds: INTEGER
+    status: VARCHAR(20) -- 'initialized', 'running', 'paused', 'completed', 'failed', 'cancelled'
+    current_round: INTEGER
+    current_phase: VARCHAR(20) -- 'opening', 'development', 'debate', 'closing'
+    llm_provider: VARCHAR(50) -- Which API was used
+    llm_model: VARCHAR(100) -- Which model
+    total_tokens_used: INTEGER
+    estimated_cost_usd: DECIMAL(10,4)
+    started_at: TIMESTAMP
+    completed_at: TIMESTAMP
+    created_at: TIMESTAMP
+    updated_at: TIMESTAMP
+)
+
+-- Discussion Participants (讨论参与者)
+discussion_participants (
+    id: UUID (PK)
+    discussion_id: UUID (FK → discussions.id)
+    character_id: UUID (FK → characters.id)
+    position: INTEGER -- Order for structured debates
+    stance: VARCHAR(20) -- For structured mode: 'pro', 'con', 'neutral'
+    message_count: INTEGER
+    total_tokens: INTEGER
+    created_at: TIMESTAMP
+)
+
+-- Discussion Messages (讨论消息)
+discussion_messages (
+    id: UUID (PK)
+    discussion_id: UUID (FK → discussions.id)
+    participant_id: UUID (FK → discussion_participants.id)
+    round: INTEGER
+    phase: VARCHAR(20)
+    content: TEXT
+    token_count: INTEGER
+    is_injected_question: BOOLEAN -- User-injected question
+    parent_message_id: UUID (FK → discussion_messages.id) -- For threading
+    metadata: JSONB -- Additional data like sentiment, topics, etc.
+    created_at: TIMESTAMP
+    tsv: TSVECTOR -- Full-text search
+)
+
+-- Reports (报告)
+reports (
+    id: UUID (PK)
+    discussion_id: UUID (FK → discussions.id) UNIQUE
+    overview: JSONB
+    viewpoints_summary: JSONB -- Array of character viewpoints
+    consensus: JSONB
+    controversies: JSONB -- Array of disagreement points
+    insights: JSONB
+    recommendations: JSONB
+    full_transcript_citation: TEXT -- Reference to messages
+    quality_scores: JSONB -- depth, diversity, constructive, coherence
+    generation_time_ms: INTEGER
+    created_at: TIMESTAMP
+    updated_at: TIMESTAMP
+)
+
+-- Share Links (分享链接)
+share_links (
+    id: UUID (PK)
+    discussion_id: UUID (FK → discussions.id)
+    user_id: UUID (FK → users.id)
+    slug: VARCHAR(20) UNIQUE -- Short URL slug
+    password_hash: VARCHAR(255) -- NULL if no password
+    expires_at: TIMESTAMP
+    access_count: INTEGER
+    created_at: TIMESTAMP
+)
+
+-- Audit Log (审计日志)
+audit_logs (
+    id: UUID (PK)
+    user_id: UUID (FK → users.id)
+    action: VARCHAR(100) -- 'discussion_created', 'api_key_added', etc.
+    resource_type: VARCHAR(50) -- 'discussion', 'topic', 'character'
+    resource_id: UUID
+    ip_address: INET
+    user_agent: TEXT
+    metadata: JSONB
+    created_at: TIMESTAMP
+)
 ```
 
-#### 流程3：查看和使用报告
-
+**Character Config JSONB Structure**:
+```json
+{
+  "age": 35,
+  "gender": "female",
+  "profession": "Product Manager",
+  "personality": {
+    "openness": 8,
+    "rigor": 6,
+    "critical_thinking": 9,
+    "optimism": 5
+  },
+  "knowledge": {
+    "fields": ["product_management", "ux_design"],
+    "experience_years": 10,
+    "representative_views": ["user-centric", "data-driven"]
+  },
+  "stance": "critical_exploration", // 'support', 'oppose', 'neutral', 'critical_exploration'
+  "expression_style": "formal", // 'formal', 'casual', 'technical', 'storytelling'
+  "behavior_pattern": "balanced" // 'active', 'passive', 'balanced'
+}
 ```
-1. 报告页面加载
-2. 显示讨论概览和总结
-3. 用户可：
-   - 阅读完整报告
-   - 查看可视化图表
-   - 搜索关键词
-   - 复制内容
-   - 导出报告（PDF/Markdown/JSON）
-   - 生成分享链接
-   - 返回修改角色配置并重新讨论
-4. 保存到历史记录
+
+**Key Indexes**:
+```sql
+-- Performance-critical indexes
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_api_keys_user_id ON user_api_keys(user_id);
+CREATE INDEX idx_topics_user_id ON topics(user_id);
+CREATE INDEX idx_topics_status ON topics(status);
+CREATE INDEX idx_characters_user_id ON characters(user_id);
+CREATE INDEX idx_characters_is_template ON characters(is_template) WHERE is_template = TRUE;
+CREATE INDEX idx_discussions_user_id ON discussions(user_id);
+CREATE INDEX idx_discussions_status ON discussions(status);
+CREATE INDEX idx_messages_discussion_id ON discussion_messages(discussion_id);
+CREATE INDEX idx_messages_discussion_round ON discussion_messages(discussion_id, round);
+CREATE INDEX idx_messages_tsv ON discussion_messages USING GIN(tsv);
+CREATE INDEX idx_reports_discussion_id ON reports(discussion_id);
+```
+
+#### 4.3.2 Caching Strategy
+
+**Redis Cache Layers**:
+
+1. **Session Cache** (TTL: 24 hours)
+   - Key: `session:{session_id}`
+   - Value: User session data, JWT tokens, CSRF tokens
+   - Use: Authentication state, quick user data lookup
+
+2. **User Profile Cache** (TTL: 1 hour)
+   - Key: `user:{user_id}:profile`
+   - Value: User profile, preferences, permissions
+   - Invalidation: On user profile update
+
+3. **API Keys Cache** (TTL: 1 hour, encrypted)
+   - Key: `user_api_keys:{user_id}`
+   - Value: Active API keys (decrypted only in memory)
+   - Use: Frequent LLM API calls without DB queries
+   - Invalidation: On API key update
+
+4. **Discussion State Cache** (TTL: Duration of discussion + 1 hour)
+   - Key: `discussion_state:{discussion_id}`
+   - Value: Current round, phase, active participants, conversation summary
+   - Use: Real-time discussion orchestration, state recovery after failure
+   - Invalidation: On discussion completion
+
+5. **Character Template Cache** (TTL: 24 hours)
+   - Key: `character_template:{template_id}`
+   - Value: Character configuration JSON
+   - Use: Quick character loading for library browsing
+   - Invalidation: On character template update
+
+6. **Rate Limiting** (TTL: Window duration)
+   - Key: `ratelimit:{user_id}:{endpoint}`
+   - Value: Request count in current window
+   - Use: Per-user, per-endpoint rate limiting
+
+7. **WebSocket Connection Tracking** (TTL: Connection duration)
+   - Key: `ws_connections:{discussion_id}:{user_id}`
+   - Value: Connection metadata, server instance ID
+   - Use: Multi-server WebSocket message routing
+
+**Cache Invalidation Strategy**:
+
+- **Write-through**: Write to both cache and database synchronously for critical data
+- **Write-back**: Write to cache first, asynchronously persist to database for high-frequency data (discussion state)
+- **Time-based expiration**: TTL-based eviction for less critical data
+- **Event-based invalidation**: Publish invalidation events on data updates
+
+#### 4.3.3 Data Retention Policy
+
+**Hot Storage (0-30 days)**: PostgreSQL primary database
+- All recent discussions, messages, reports
+- Active user data
+- Real-time analytics data
+
+**Warm Storage (31-90 days)**: PostgreSQL read replica
+- Older discussions moved to read replica
+- Compressed message archives
+- Aggregated analytics
+
+**Cold Storage (90+ days)**: S3-compatible object storage (JSON format)
+- Archived discussions exported as JSON
+- Compliance requirements (data export requests)
+- Long-term analytics data lake
+
+**Automated Cleanup**:
+```python
+# Daily job to archive old discussions
+async def cleanup_old_discussions():
+    cutoff_90_days = datetime.utcnow() - timedelta(days=90)
+
+    # Export to cold storage
+    await archive_to_s3(
+        cutoff_date=cutoff_90_days,
+        destination="s3://simfocus-archive/discussions/"
+    )
+
+    # Delete from primary DB
+    await delete_discussions_older_than(cutoff_90_days)
 ```
 
 ---
 
-## 5. 非功能需求
+### 4.4 API Design
 
-### 5.1 性能要求
+#### 4.4.1 REST API Structure
 
-| 指标 | 要求 | 说明 |
-|-----|------|-----|
-| 响应时间 | < 2秒 | 从用户操作到界面响应的时间（不包含大模型API调用） |
-| 首条消息延迟 | < 10秒 | 从开始讨论到第一条消息显示 |
-| 消息生成速度 | 5-10秒/条 | 角色发言的平均生成时间 |
-| 报告生成时间 | < 10秒 | 从讨论结束到报告显示 |
-| 并发用户数 | 1000+ | 同时在线用户数（MVP阶段） |
-| API请求成功率 | > 99% | 大模型API调用成功率（包含重试） |
+**Base URL**: `https://api.simfocus.com/v1`
 
-**性能优化策略**：
-- 前端使用WebSocket实现实时通信
-- 大模型API调用使用连接池和异步处理
-- 静态资源使用CDN加速
-- 实现请求缓存和去重
+**Core Endpoint Categories**:
+
+**Authentication**
+```
+POST   /auth/register
+POST   /auth/login
+POST   /auth/logout
+POST   /auth/refresh
+POST   /auth/verify-email
+POST   /auth/forgot-password
+POST   /auth/reset-password
+```
+
+**User Management**
+```
+GET    /users/me
+PATCH  /users/me
+DELETE /users/me
+GET    /users/me/api-keys
+POST   /users/me/api-keys
+DELETE /users/me/api-keys/{key_id}
+PATCH  /users/me/api-keys/{key_id}
+```
+
+**Topics (议题管理)**
+```
+GET    /topics
+POST   /topics
+GET    /topics/{topic_id}
+PATCH  /topics/{topic_id}
+DELETE /topics/{topic_id}
+POST   /topics/{topic_id}/duplicate
+```
+
+**Characters (角色系统)**
+```
+GET    /characters
+POST   /characters
+GET    /characters/{character_id}
+PATCH  /characters/{character_id}
+DELETE /characters/{character_id}
+GET    /characters/templates
+POST   /characters/from-template
+POST   /characters/{character_id}/rate
+```
+
+**Discussions (讨论引擎)**
+```
+POST   /discussions
+GET    /discussions
+GET    /discussions/{discussion_id}
+DELETE /discussions/{discussion_id}
+POST   /discussions/{discussion_id}/start
+POST   /discussions/{discussion_id}/pause
+POST   /discussions/{discussion_id}/resume
+POST   /discussions/{discussion_id}/stop
+POST   /discussions/{discussion_id}/inject-question
+GET    /discussions/{discussion_id}/messages
+```
+
+**Reports (报告生成)**
+```
+GET    /discussions/{discussion_id}/report
+GET    /reports/{report_id}
+GET    /reports/{report_id}/export/{format}
+```
+
+**Analytics (P1/P2 features)**
+```
+GET    /discussions/{discussion_id}/analytics
+POST   /discussions/compare
+```
+
+**Share Links**
+```
+POST   /discussions/{discussion_id}/share
+GET    /share/{slug}
+DELETE /share/{slug}
+```
+
+#### 4.4.2 WebSocket Protocol
+
+**WebSocket Endpoint**: `wss://api.simfocus.com/v1/ws/discussions/{discussion_id}?token={jwt_token}`
+
+**Connection Flow**:
+1. Client connects with JWT token in query parameter
+2. Server verifies token and discussion access permission
+3. Server sends connection confirmation
+4. Bi-directional message exchange begins
+5. Client or server can close connection
+
+**Message Protocol (JSON)**:
+
+**Client → Server Messages**:
+```javascript
+// Subscribe to discussion updates
+{
+  "action": "subscribe",
+  "data": {
+    "discussion_id": "uuid"
+  }
+}
+
+// Control commands
+{
+  "action": "control",
+  "data": {
+    "control_type": "pause" | "resume" | "speed" | "inject",
+    "speed": 1.0 | 1.5 | 2.0 | 3.0,
+    "question": "text"
+  }
+}
+
+// Heartbeat (client-side ping)
+{
+  "action": "ping"
+}
+```
+
+**Server → Client Messages**:
+```javascript
+// New character message (streaming)
+{
+  "type": "message",
+  "data": {
+    "message_id": "uuid",
+    "character_id": "uuid",
+    "character_name": "string",
+    "content": "string",
+    "round": 1,
+    "phase": "opening" | "development" | "debate" | "closing",
+    "timestamp": "ISO8601",
+    "is_streaming": true
+  }
+}
+
+// Message complete (final)
+{
+  "type": "message_complete",
+  "data": {
+    "message_id": "uuid",
+    "token_count": 123
+  }
+}
+
+// Discussion status update
+{
+  "type": "status",
+  "data": {
+    "status": "initializing" | "running" | "paused" | "completed" | "failed",
+    "current_round": 5,
+    "total_rounds": 20,
+    "current_phase": "development",
+    "progress_percentage": 25
+  }
+}
+
+// Character thinking indicator
+{
+  "type": "character_thinking",
+  "data": {
+    "character_id": "uuid",
+    "character_name": "string"
+  }
+}
+
+// Error notification
+{
+  "type": "error",
+  "data": {
+    "code": "LLM_API_ERROR",
+    "message": "Human-readable error message",
+    "retryable": true
+  }
+}
+
+// Pong response to heartbeat
+{
+  "type": "pong"
+}
+```
+
+#### 4.4.3 Error Handling
+
+**Standard Error Response Format**:
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Human-readable error message",
+    "details": {
+      "field": "topic.title",
+      "reason": "Title must be between 10-200 characters"
+    },
+    "request_id": "uuid",
+    "timestamp": "ISO8601"
+  }
+}
+```
+
+**Error Code Categories**:
+
+**Authentication Errors** (401):
+- `AUTH_001`: Invalid or expired token
+- `AUTH_002`: Token missing
+- `AUTH_003`: Invalid credentials
+
+**Authorization Errors** (403):
+- `AUTHZ_001`: Insufficient permissions
+- `AUTHZ_002`: Resource access denied
+- `AUTHZ_003`: Discussion ownership required
+
+**Validation Errors** (400):
+- `VALIDATION_001`: Invalid input format
+- `VALIDATION_002`: Missing required field
+- `VALIDATION_003`: Value out of range
+
+**Resource Errors** (404):
+- `RESOURCE_001`: Resource not found
+- `RESOURCE_002`: Resource already deleted
+
+**API Key Errors** (400):
+- `API_KEY_001`: Invalid API key
+- `API_KEY_002`: API key quota exceeded
+- `API_KEY_003`: API key rate limited
+
+**Discussion Errors** (400):
+- `DISCUSSION_001`: Discussion not found
+- `DISCUSSION_002`: Discussion already started
+- `DISCUSSION_003`: Discussion failed to start
+- `DISCUSSION_004`: Maximum concurrent discussions reached
+
+**LLM API Errors** (502):
+- `LLM_001`: LLM API error
+- `LLM_002`: LLM timeout
+- `LLM_003`: LLM rate limited
+- `LLM_004`: LLM context length exceeded
+
+**Rate Limiting** (429):
+- `RATE_LIMIT_001`: Too many requests
+- `RATE_LIMIT_002`: Discussion creation limit exceeded
+
+**Server Errors** (500):
+- `SERVER_001`: Internal server error
+- `SERVER_002`: Database connection error
+- `SERVER_003`: Service temporarily unavailable
+
+#### 4.4.4 Rate Limiting Strategy
+
+**Endpoint-Specific Limits**:
+- Authentication endpoints: 5 requests/minute per IP
+- API mutation endpoints: 60 requests/minute per user
+- Discussion creation: 10 discussions/hour per user
+- Character creation: 100 characters/hour per user
+- WebSocket connections: 5 concurrent connections per user
+
+**Implementation**:
+- Token bucket algorithm using Redis
+- Sliding window for precision
+- Per-user and per-IP limits
+- Rate limit headers in response:
+  ```
+  X-RateLimit-Limit: 100
+  X-RateLimit-Remaining: 95
+  X-RateLimit-Reset: 1641234567
+  ```
 
 ---
 
-### 5.2 安全与隐私
+### 4.5 Enhanced Function Modules
 
-**数据安全**：
-- 用户API密钥加密存储（AES-256）
-- 传输过程使用HTTPS加密
-- 数据库定期备份
-- 敏感操作记录日志
+#### Module 7: Discussion Analysis and Optimization (Discussion Analytics)
 
-**隐私保护**：
-- 用户讨论内容默认私密，不用于训练AI
-- 不在未授权情况下共享用户数据
-- 支持用户导出和删除个人数据
-- 遵守GDPR、CCPA等隐私法规
+**Feature 7.1: Discussion Quality Scoring**
 
-**访问控制**：
-- 用户只能访问自己的讨论记录
-- 团队功能支持细粒度权限控制
-- 分享链接支持密码保护和有效期
+**Requirement Description**:
+- System automatically evaluates discussion quality
+- Provides multi-dimensional scoring and suggestions
 
-**安全审计**：
-- 定期安全扫描和渗透测试
-- 依赖库漏洞扫描
-- 安全事件响应机制
+**Scoring Dimensions**:
+- **Depth Score** (0-100): Logical depth and thoroughness of arguments
+- **Diversity Score** (0-100): Viewpoint diversity and differentiation
+- **Constructive Score** (0-100): Actionability and practicality of conclusions
+- **Coherence Score** (0-100): Logical coherence and structural clarity of discussion
+
+**Improvement Suggestions**:
+- Provide specific suggestions for low-score dimensions
+- Example: "Diversity score is low, suggest adding critical characters"
+- Or: "Constructive score is low, suggest guiding characters to propose specific recommendations in closing phase"
 
 ---
 
-### 5.3 可用性要求
+**Feature 7.2: Comparative Analysis**
 
-**系统可用性**：
-- 可用性目标：99.5%（每月停机时间 < 3.6小时）
-- 计划内维护提前24小时通知
-- 实现健康检查和自动恢复
+**Requirement Description**:
+- Support multiple discussions of same topic with different character configurations
+- Compare and analyze differences between multiple discussions
 
-**容错机制**：
-- API调用失败自动重试（最多3次）
-- 讨论中断支持断点续传
-- 数据库主从复制和故障转移
+**Comparison Dimensions**:
+- Viewpoint differences comparison
+- Conclusion differences comparison
+- Impact of character configuration on discussion results
+
+**Application Scenarios**:
+- Verify robustness of conclusion (whether different character combinations yield similar results)
+- Explore perspective differences among different stakeholders
+- Find better character configuration schemes
 
 ---
 
-### 5.4 兼容性要求
+#### Module 8: Collaboration and Sharing (Collaboration)
 
-**浏览器支持**：
+**Feature 8.1: Team Workspaces**
+
+**Requirement Description**:
+- Support creating team spaces
+- Team members share discussion records
+- Unified management of API keys (enterprise version)
+
+**Feature Details**:
+- Team member invitation and management
+- Team discussion library sharing
+- Team character library sharing
+- Team usage statistics
+
+**Permission Management**:
+- Owner: Full control permissions
+- Admin: Manage discussions and members
+- Member: View and create discussions
+- Guest: Only view specified discussions
+
+---
+
+**Feature 8.2: Comments and Annotations**
+
+**Requirement Description**:
+- Support adding comments on discussion reports
+- Team members can collaborative annotation
+
+**Feature Details**:
+- Add comments to specific speeches
+- @mention other members
+- Comment notifications
+- Comment export
+
+---
+
+#### Module 9: Advanced Character System (Advanced Characters)
+
+**Feature 9.1: Character Evolution Learning**
+
+**Requirement Description**:
+- Characters "learn" and evolve based on historical discussions
+- Characters retain conversation memory (within same discussion series)
+
+**Application Scenarios**:
+- When continuously discussing multiple topics of same project, characters "remember" previous discussion content
+- Characters reference previous viewpoints in later discussions
+- Simulate real long-term collaborative relationships
+
+**Technical Implementation**:
+- Use vector database to store character historical speeches
+- Retrieve relevant history when generating new replies
+- Maintain character consistency through Prompt Engineering
+
+---
+
+**Feature 9.2: Real Person Simulation**
+
+**Requirement Description**:
+- Create virtual characters based on real person's speech materials
+- Simulate thinking patterns of historical figures, experts, opinion leaders
+
+**Application Scenarios**:
+- Academic discussion: Simulate philosophers like Aristotle, Kant, Wittgenstein
+- Business analysis: Simulate entrepreneurs like Musk, Buffett, Jobs
+- Historical research: Simulate historical figures' views on modern topics
+
+**Implementation**:
+- User uploads representative text of real person (works, speeches, interviews)
+- System analyzes text to extract thinking patterns and expression style
+- Generate character configuration
+
+**Notes**:
+- Clearly label as "simulated character" to avoid misleading
+- Respect portrait rights and reputation rights of characters
+
+---
+
+#### Module 10: Intelligent Assistance (AI Assistance)
+
+**Feature 10.1: Topic Intelligent Analysis**
+
+**Requirement Description**:
+- After user enters topic, system automatically analyzes topic characteristics
+- Recommend best discussion strategies
+
+**Analysis Dimensions**:
+- Topic type recognition (product decision, academic exploration, creative ideation, etc.)
+- Key stakeholder identification
+- Potential controversy point prediction
+- Recommended discussion mode
+- Recommended character configuration
+- Suggested discussion guiding questions
+
+**Output Example**:
+```
+Topic Analysis Results:
+- Topic type: Product decision category
+- Complexity: Medium
+- Recommended discussion mode: Structured debate mode
+- Recommended characters: Product manager, target user, technical lead, market expert, competitor representative
+- Estimated discussion duration: 20 minutes
+- Potential controversy points: Technical feasibility vs user needs
+```
+
+---
+
+**Feature 10.2: Discussion Guidance Assistant**
+
+**Requirement Description**:
+- AI assistant provides guidance suggestions during discussion
+- Help users optimize discussion quality
+
+**Assistance Functions**:
+- Suggest guiding questions when discussion deadlocks
+- Prompt user to focus when certain viewpoints ignored
+- Suggest adjusting direction when discussion deviates from topic
+- Real-time analyze discussion quality, provide improvement suggestions
+
+**Interaction**:
+- Display suggestions in sidebar
+- Users can selectively adopt
+- Don't disturb main discussion flow
+
+---
+
+### 4.6 Functional Interaction Flows
+
+#### Flow 1: Create and Start Discussion
+
+```
+1. User logs into platform
+2. Click "Create New Discussion"
+3. Enter topic content
+4. Select character configuration method (custom/auto-generate)
+5. If selecting custom:
+   a. Create or select characters (3-7)
+   b. Configure character traits
+   c. Preview characters
+6. If selecting auto-generate:
+   a. System analyzes topic
+   b. Display 3 recommendation options
+   c. User selects option (optional adjustment)
+7. Select discussion mode (default free discussion)
+8. Set discussion duration (default 20 minutes)
+9. Confirm API configuration (prompt if not configured)
+10. Click "Start Discussion"
+11. Enter real-time observation interface
+```
+
+#### Flow 2: Watch Discussion and Interact
+
+```
+1. Observation interface loads, displays character list and discussion area
+2. Characters begin taking turns speaking
+3. New messages display in real-time
+4. User can at any time:
+   - Pause/continue discussion
+   - Adjust playback speed
+   - View character details
+   - Insert guiding question
+   - End discussion
+5. Discussion auto-ends or user manually ends
+6. Auto-navigate to report page
+```
+
+#### Flow 3: View and Use Report
+
+```
+1. Report page loads
+2. Display discussion overview and summary
+3. User can:
+   - Read complete report
+   - View visualization charts
+   - Search keywords
+   - Copy content
+   - Export report (PDF/Markdown/JSON)
+   - Generate share link
+   - Return to modify character configuration and re-discuss
+4. Save to history
+```
+
+---
+
+## 5. Non-Functional Requirements
+
+### 5.1 Performance Requirements
+
+| Metric | Requirement | Description |
+|-------|-------------|-------------|
+| Response Time | < 2 seconds | Time from user action to interface response (excluding LLM API calls) |
+| First Message Latency | < 10 seconds | Time from discussion start to first message display |
+| Message Generation Speed | 5-10 seconds/message | Average generation time for character speeches |
+| Report Generation Time | < 10 seconds | Time from discussion end to report display |
+| Concurrent Users | 1000+ | Simultaneous online users (MVP phase) |
+| API Request Success Rate | > 99% | LLM API call success rate (including retries) |
+
+**Performance Optimization Strategy**:
+- Frontend uses WebSocket for real-time communication
+- LLM API calls use connection pooling and async processing
+- Static assets use CDN acceleration
+- Implement request caching and deduplication
+
+---
+
+### 5.2 Security and Privacy
+
+#### 5.2.1 Data Security
+
+**API Key Encryption**:
+- User API keys encrypted storage using AES-256-GCM
+- 32-byte master key stored in environment variable (not in code)
+- Different encryption keys per deployment (dev/staging/prod)
+- Master key rotation annually with re-encryption
+- Consider AWS KMS or HashiCorp Vault for production
+
+**Implementation**:
+```python
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+import os
+
+class APIKeyEncryption:
+    def __init__(self, master_key: bytes):
+        if len(master_key) != 32:
+            raise ValueError("Master key must be 32 bytes")
+        self.cipher = AESGCM(master_key)
+
+    def encrypt(self, plaintext: str) -> str:
+        """Encrypt API key, return base64-encoded result"""
+        nonce = os.urandom(12)  # 96-bit nonce for GCM
+        ciphertext = self.cipher.encrypt(nonce, plaintext.encode(), None)
+        return base64.b64encode(nonce + ciphertext).decode()
+
+    def decrypt(self, encrypted: str) -> str:
+        """Decrypt encrypted API key"""
+        data = base64.b64decode(encrypted)
+        nonce, ciphertext = data[:12], data[12:]
+        return self.cipher.decrypt(nonce, ciphertext, None).decode()
+```
+
+**Transmission Security**:
+- All communications use HTTPS/WSS encryption (TLS 1.3)
+- JWT tokens for authentication with short expiration (24 hours)
+- Sensitive fields encrypted in database
+
+**Data Storage Security**:
+- Database regular backups (daily full, hourly incremental)
+- Sensitive operation logging
+- Database encryption at rest
+
+#### 5.2.2 Privacy Protection
+
+**Data Minimization**:
+- User discussion content private by default, not used for AI training
+- Don't share user data without authorization
+- Support user exporting and deleting personal data
+
+**Compliance**:
+- Comply with GDPR, CCPA and other privacy regulations
+- Provide data portability (export in JSON format)
+- Provide right to be forgotten (complete deletion)
+- Maintain consent records
+
+**User Control**:
+- Users can access all their data
+- Users can delete their discussions
+- Users can export all their data
+- Clear privacy policy and terms of service
+
+#### 5.2.3 Access Control
+
+**Authentication**:
+- JWT-based authentication
+- OAuth 2.0 integration for third-party login
+- Multi-factor authentication (P2 feature)
+
+**Authorization**:
+- Users can only access their own discussion records
+- Team function supports fine-grained permission control
+- Share links support password protection and validity period
+
+**Session Management**:
+- JWT token expiration after 24 hours
+- Refresh token mechanism
+- Session invalidation on logout
+
+#### 5.2.4 Content Moderation
+
+**Multi-layer Content Moderation**:
+1. **Local keyword filtering** (fast): Block obviously inappropriate topics
+2. **Regex pattern matching**: Detect structured harmful content
+3. **LLM-based moderation** (optional, slower): nuanced policy evaluation
+
+**User Reporting**:
+- In-app reporting mechanism
+- Review queue for reported content
+- Account suspension for repeated violations
+
+#### 5.2.5 Security Auditing
+
+**Regular Security Measures**:
+- Quarterly security scans and penetration testing
+- Dependency library vulnerability scanning (Dependabot, Snyk)
+- Security event response mechanism
+- Security logging for audit trails
+
+**Audit Logging**:
+- All authentication events
+- All authorization failures
+- All API key operations
+- All discussion creation/deletion
+- IP address and user agent logging
+
+---
+
+### 5.3 Availability Requirements
+
+**System Availability**:
+- Availability target: 99.5% (monthly downtime < 3.6 hours)
+- Planned maintenance notified 24 hours in advance
+- Implement health checks and auto-recovery
+
+**Fault Tolerance**:
+- API call failure automatic retry (max 3 times)
+- Discussion interruption support resume from breakpoint
+- Database master-slave replication and failover
+- Redis clustering for cache high availability
+
+**Disaster Recovery**:
+- Database backups stored in multiple geographic regions
+- RTO (Recovery Time Objective): 1 hour
+- RPO (Recovery Point Objective): 5 minutes
+
+---
+
+### 5.4 Compatibility Requirements
+
+**Browser Support**:
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
 - Edge 90+
 
-**设备支持**：
-- 桌面端（主要）：1920x1080及以上分辨率
-- 平板端（次要）：iPad及以上尺寸
-- 移动端（次要）：响应式设计，功能简化
+**Device Support**:
+- Desktop (primary): 1920x1080 and above resolution
+- Tablet (secondary): iPad and above size
+- Mobile (secondary): Responsive design, simplified features
 
-**大模型API兼容**：
-- OpenAI API格式
-- Anthropic API格式
-- 兼容OpenAI格式的第三方API（如LocalAI、Ollama）
-
----
-
-### 5.5 可访问性
-
-**无障碍设计**：
-- 遵守WCAG 2.1 AA级标准
-- 支持键盘导航
-- 支持屏幕阅读器
-- 色彩对比度符合标准
-- 提供文字大小调节
-
-**国际化**：
-- 初期支持中文
-- 预留多语言扩展架构
-- 支持UTF-8编码
-- 日期、时间、数字格式本地化
+**LLM API Compatibility**:
+- OpenAI API format
+- Anthropic API format
+- OpenAI-compatible third-party APIs (e.g., LocalAI, Ollama)
 
 ---
 
-### 5.6 可维护性
+### 5.5 Accessibility
 
-**代码质量**：
-- 代码注释覆盖率 > 30%
-- 单元测试覆盖率 > 70%
-- 使用代码质量检查工具（ESLint、Prettier）
-- 定期代码审查
+**Accessibility Design**:
+- Comply with WCAG 2.1 AA level standards
+- Support keyboard navigation
+- Support screen readers
+- Color contrast compliance
+- Provide text size adjustment
 
-**监控和日志**：
-- 实时监控应用性能
-- 错误日志集中收集
-- 用户行为分析（匿名化）
-- API调用统计和成本跟踪
-
-**文档**：
-- API文档（如提供公开API）
-- 部署文档
-- 故障排查手册
-- 用户手册和帮助中心
+**Internationalization**:
+- Initial support for Chinese
+- Reserved multi-language extension architecture
+- Support UTF-8 encoding
+- Date, time, number format localization
 
 ---
 
-## 6. 功能优先级
+### 5.6 Maintainability
 
-### 6.1 优先级评估框架（RICE模型）
+**Code Quality**:
+- Code comment coverage > 30%
+- Unit test coverage > 70%
+- Use code quality check tools (ESLint, Prettier)
+- Regular code review
 
-| 功能模块 | Reach (触达用户) | Impact (影响) | Confidence (信心) | Effort (工作量) | RICE分数 | 优先级 |
-|---------|-----------------|--------------|-----------------|---------------|---------|-------|
-| 用户注册/登录 | 100% | 3 (巨大) | 100% | 3人周 | 100 | P0 |
-| 议题输入 | 100% | 3 (巨大) | 100% | 2人周 | 150 | P0 |
-| 自定义角色创建 | 100% | 3 (巨大) | 90% | 4人周 | 67.5 | P0 |
-| 智能角色推荐 | 80% | 2 (较大) | 70% | 6人周 | 18.7 | P1 |
-| 多角色讨论驱动 | 100% | 3 (巨大) | 80% | 10人周 | 24 | P0 |
-| 实时观摩 | 100% | 3 (巨大) | 95% | 3人周 | 95 | P0 |
-| 报告生成 | 100% | 3 (巨大) | 90% | 5人周 | 54 | P0 |
-| 历史查询 | 90% | 2 (较大) | 100% | 2人周 | 90 | P0 |
-| API管理 | 100% | 3 (巨大) | 100% | 2人周 | 150 | P0 |
-| 讨论控制（暂停/加速） | 60% | 1 (中等) | 95% | 2人周 | 28.5 | P1 |
-| 互动引导（插入问题） | 40% | 2 (较大) | 80% | 3人周 | 21.3 | P1 |
-| 讨论质量评分 | 30% | 1 (中等) | 60% | 4人周 | 4.5 | P2 |
-| 报告导出 | 70% | 2 (较大) | 100% | 2人周 | 70 | P1 |
-| 团队协作 | 20% | 2 (较大) | 70% | 8人周 | 3.5 | P2 |
-| 角色库 | 80% | 1 (中等) | 80% | 3人周 | 21.3 | P1 |
+**Monitoring and Logging**:
+- Real-time application performance monitoring
+- Error log centralized collection
+- User behavior analysis (anonymized)
+- API call statistics and cost tracking
 
-**RICE分数计算公式**: (Reach × Impact × Confidence) / Effort
-
-### 6.2 MVP功能范围（P0）
-
-**MVP（最小可行产品）必须包含的功能**：
-
-1. **用户系统**
-   - 邮箱注册/登录
-   - 个人中心（管理API密钥）
-
-2. **议题管理**
-   - 创建议题
-   - 议题列表
-
-3. **角色系统**
-   - 自定义角色创建（基础版）
-   - 预置角色库（50个角色）
-
-4. **讨论引擎**
-   - 多角色自由讨论模式
-   - 实时观摩界面
-   - 基础讨论控制（开始、暂停、结束）
-
-5. **报告生成**
-   - 讨论总结报告（基础版）
-   - 在线查看报告
-
-6. **历史记录**
-   - 查看历史讨论
-   - 查看历史报告
-
-7. **API管理**
-   - 配置大模型API
-   - API使用监控
-
-**MVP不包含的功能（留待后续迭代）**：
-- 智能角色推荐（使用预置模板替代）
-- 高级讨论控制（加速播放、插入问题）
-- 讨论质量评分
-- 团队协作
-- 报告导出（仅在线查看）
+**Documentation**:
+- API documentation (if providing public API)
+- Deployment documentation
+- Troubleshooting manual
+- User manual and help center
 
 ---
 
-### 6.3 功能迭代路线图
+## 6. Feature Prioritization
 
-#### V1.0 - MVP（发布时间：M3）
+### 6.1 Prioritization Framework (RICE Model)
 
-**目标**：验证核心价值，实现端到端的讨论流程
+| Feature Module | Reach (Users) | Impact | Confidence | Effort | RICE Score | Priority |
+|----------------|--------------|--------|------------|--------|------------|----------|
+| User registration/login | 100% | 3 (huge) | 100% | 3 person-weeks | 100 | P0 |
+| Topic input | 100% | 3 (huge) | 100% | 2 person-weeks | 150 | P0 |
+| Custom character creation | 100% | 3 (huge) | 90% | 4 person-weeks | 67.5 | P0 |
+| Intelligent character recommendation | 80% | 2 (large) | 70% | 6 person-weeks | 18.7 | P1 |
+| Multi-character discussion drive | 100% | 3 (huge) | 80% | 10 person-weeks | 24 | P0 |
+| Real-time observation | 100% | 3 (huge) | 95% | 3 person-weeks | 95 | P0 |
+| Report generation | 100% | 3 (huge) | 90% | 5 person-weeks | 54 | P0 |
+| History query | 90% | 2 (large) | 100% | 2 person-weeks | 90 | P0 |
+| API management | 100% | 3 (huge) | 100% | 2 person-weeks | 150 | P0 |
+| Discussion control (pause/accelerate) | 60% | 1 (medium) | 95% | 2 person-weeks | 28.5 | P1 |
+| Interactive guidance (insert question) | 40% | 2 (large) | 80% | 3 person-weeks | 21.3 | P1 |
+| Discussion quality scoring | 30% | 1 (medium) | 60% | 4 person-weeks | 4.5 | P2 |
+| Report export | 70% | 2 (large) | 100% | 2 person-weeks | 70 | P1 |
+| Team collaboration | 20% | 2 (large) | 70% | 8 person-weeks | 3.5 | P2 |
+| Character library | 80% | 1 (medium) | 80% | 3 person-weeks | 21.3 | P1 |
 
-**功能**：
-- P0功能全部上线
-- 支持1个大模型API提供商（OpenAI）
-- 单人使用模式
-- 基础UI/UX
+**RICE Score Calculation Formula**: (Reach × Impact × Confidence) / Effort
 
-**成功标准**：
-- 至少50个种子用户
-- 完成率 > 70%（从创建议题到查看报告）
-- 用户满意度 > 3.5/5
+### 6.2 MVP Feature Scope (P0)
 
----
+**MVP (Minimum Viable Product) Must Include**:
 
-#### V1.1 - 增强体验（发布时间：M4）
+1. **User System**
+   - Email registration/login
+   - Personal center (manage API keys)
 
-**目标**：提升用户体验和讨论质量
+2. **Topic Management**
+   - Create topic
+   - Topic list
 
-**新增功能**：
-- 支持多个大模型API（Anthropic、本地模型）
-- 智能角色推荐
-- 高级讨论控制（加速、插入问题）
-- 议题模板库
-- 角色预览功能
+3. **Character System**
+   - Custom character creation (basic version)
+   - Preset character library (50 characters)
 
-**优化**：
-- 讨论质量提升
-- 报告内容优化
-- UI/UX改进
+4. **Discussion Engine**
+   - Multi-character free discussion mode
+   - Real-time observation interface
+   - Basic discussion control (start, pause, end)
 
----
+5. **Report Generation**
+   - Discussion summary report (basic version)
+   - Online report viewing
 
-#### V1.2 - 内容与分享（发布时间：M5）
+6. **History Records**
+   - View historical discussions
+   - View historical reports
 
-**目标**：增强内容价值和传播能力
+7. **API Management**
+   - Configure LLM API
+   - API usage monitoring
 
-**新增功能**：
-- 扩展角色库至100+角色
-- 报告导出（PDF、Markdown）
-- 分享链接功能
-- 讨论对比分析
-- 议题搜索和筛选
-
----
-
-#### V2.0 - 协作与智能化（发布时间：M8）
-
-**目标**：拓展团队场景，提升智能化水平
-
-**新增功能**：
-- 团队工作区
-- 团队角色库
-- 评论与批注
-- 讨论质量评分
-- 议题智能分析
-- 讨论引导助手
-
----
-
-#### V2.1 - 高级功能（发布时间：M10）
-
-**目标**：差异化功能，增强竞争力
-
-**新增功能**：
-- 角色进化学习
-- 多种讨论模式（辩论、共识、创意发散）
-- 报告可视化增强
-- 自定义主题（UI主题）
+**MVP Excludes** (deferred to later iterations):
+- Intelligent character recommendation (use preset templates instead)
+- Advanced discussion control (accelerated playback, insert question)
+- Discussion quality scoring
+- Team collaboration
+- Report export (online viewing only)
 
 ---
 
-#### V3.0 - 生态系统（发布时间：M12+）
+### 6.3 Feature Iteration Roadmap
 
-**目标**：构建生态，扩展边界
+#### V1.0 - MVP (Launch: Month 3)
 
-**新增功能**：
-- 角色市场（用户分享和交易角色）
-- API开放平台
-- 插件系统
-- 移动端App
-- 语音讨论
-- 实时多人互动
+**Goal**: Verify core value, achieve end-to-end discussion workflow
 
----
+**Features**:
+- All P0 features online
+- Support 1 LLM API provider (OpenAI)
+- Single-user mode
+- Basic UI/UX
 
-## 7. 成功指标
-
-### 7.1 北极星指标
-
-**核心价值指标**：**周活跃讨论数 (Weekly Active Discussions)**
-
-**定义**：每周创建并完成的讨论数量
-
-**目标**：
-- V1.0发布后1个月：100次/周
-- V1.0发布后3个月：500次/周
-- V1.0发布后6个月：2000次/周
-
-**原因**：
-- 直接反映产品的核心价值使用情况
-- 比用户数更能体现产品真实价值
-- 与商业价值高度相关
+**Success Criteria**:
+- At least 50 seed users
+- Completion rate > 70% (from creating topic to viewing report)
+- User satisfaction > 3.5/5
 
 ---
 
-### 7.2 过程指标
+#### V1.1 - Enhanced Experience (Launch: Month 4)
 
-**用户激活**：
-- **注册转化率**：访客 → 注册用户 > 15%
-- **首次讨论完成率**：注册后7天内完成首次讨论 > 40%
-- **API配置率**：注册后配置API密钥 > 60%
+**Goal**: Improve user experience and discussion quality
 
-**用户留存**：
-- **次日留存率** > 40%
-- **7日留存率** > 25%
-- **30日留存率** > 15%
+**New Features**:
+- Support multiple LLM APIs (Anthropic, local models)
+- Intelligent character recommendation
+- Advanced discussion control (accelerate, insert question)
+- Topic template library
+- Character preview function
 
-**用户参与**：
-- **周讨论频率**：活跃用户每周平均讨论次数 > 2
-- **讨论完成率**：从创建到查看报告 > 70%
-- **平均讨论时长**：15-25分钟（反映内容质量）
-
-**功能渗透**：
-- **自定义角色使用率** > 30%
-- **智能推荐使用率** > 40%
-- **报告查看完整度** > 60%
+**Optimizations**:
+- Discussion quality improvement
+- Report content optimization
+- UI/UX improvements
 
 ---
 
-### 7.3 结果指标
+#### V1.2 - Content and Sharing (Launch: Month 5)
 
-**用户满意度**：
-- **NPS (净推荐值)** > 30
-- **用户评分** > 4.0/5
-- **客户满意度 (CSAT)** > 80%
+**Goal**: Enhance content value and dissemination capability
 
-**讨论质量**（主观评估）：
-- **讨论有用性** > 80%（用户反馈）
-- **报告质量评分** > 4.0/5
-- **角色真实性评分** > 3.5/5
-
-**业务指标**（如推出付费版）：
-- **付费转化率** > 5%
-- **ARPU (每用户平均收入)** > $10/月
-- **CAC (获客成本) < LTV (用户终身价值) × 0.3**
+**New Features**:
+- Expand character library to 100+ characters
+- Report export (PDF, Markdown)
+- Share link function
+- Discussion comparative analysis
+- Topic search and filtering
 
 ---
 
-### 7.4 反向指标
+#### V2.0 - Collaboration and Intelligence (Launch: Month 8)
 
-**需要监控和降低的指标**：
-- **API调用失败率** < 1%
-- **讨论中断率** < 5%（未完成就退出）
-- **报告生成失败率** < 0.5%
-- **用户投诉率** < 2%
-- **负面反馈占比** < 10%
+**Goal**: Expand team scenarios, improve intelligence level
 
----
-
-### 7.5 数据收集方案
-
-**埋点设计**：
-
-**用户行为埋点**：
-- 页面访问（page_view）
-- 按钮点击（button_click）
-- 讨论创建（discussion_create）
-- 讨论完成（discussion_complete）
-- 报告查看（report_view）
-- 报告导出（report_export）
-
-**业务埋点**：
-- API调用成功/失败（api_call_success/fail）
-- 角色创建/选择（character_create/select）
-- 讨论控制操作（discussion_control）
-- 分享链接生成/访问（share_link_generate/access）
-
-**性能埋点**：
-- 页面加载时间（page_load_time）
-- API响应时间（api_response_time）
-- 消息生成时间（message_generation_time）
-
-**用户反馈收集**：
-- 讨论结束后弹出满意度调查
-- 应用内反馈入口
-- 定期用户访谈（每月5-10人）
-- NPS调查（每季度）
+**New Features**:
+- Team workspaces
+- Team character library
+- Comments and annotations
+- Discussion quality scoring
+- Topic intelligent analysis
+- Discussion guidance assistant
 
 ---
 
-## 8. 竞品分析
+#### V2.1 - Advanced Features (Launch: Month 10)
 
-### 8.1 直接竞品
+**Goal**: Differentiated features, enhance competitiveness
 
-目前市场上缺乏完全相同的产品，但有类似功能的工具：
-
-#### 竞品1：ChatGPT + 自定义指令
-
-**产品描述**：OpenAI的ChatGPT支持自定义指令，可模拟不同角色
-
-**优势**：
-- 强大的语言模型
-- 灵活的自定义指令
-- 庞大的用户基础
-
-**劣势**：
-- 需要手动模拟多个角色（不具备自动多角色互动）
-- 无结构化的讨论流程
-- 无专业的报告生成
-- 无观摩体验
-
-**我们的差异化**：
-- 专门设计的多角色讨论引擎
-- 自动化的讨论流程控制
-- 结构化的报告生成
-- 实时观摩体验
+**New Features**:
+- Character evolution learning
+- Multiple discussion modes (debate, consensus, creative divergence)
+- Enhanced report visualization
+- Custom themes (UI themes)
 
 ---
 
-#### 竞品2：Character.ai
+#### V3.0 - Ecosystem (Launch: Month 12+)
 
-**产品描述**：创建和与虚拟角色对话的平台
+**Goal**: Build ecosystem, expand boundaries
 
-**优势**：
-- 丰富的角色库
-- 逼真的角色对话
-- 社区活跃
-
-**劣势**：
-- 主要用于娱乐和陪伴
-- 不支持多角色同时讨论
-- 无议题驱动的讨论
-- 无专业报告生成
-
-**我们的差异化**：
-- 聚焦 productive 使用场景（决策、研究、创意）
-- 多角色协同讨论
-- 议题驱动而非角色驱动
-- 专业级报告输出
+**New Features**:
+- Character marketplace (user sharing and trading characters)
+- API open platform
+- Plugin system
+- Mobile App
+- Voice discussions
+- Real-time multi-person interaction
 
 ---
 
-#### 竞品3：C-3 - AI Roleplayer
+## 7. Success Metrics
 
-**产品描述**：通过AI角色扮演进行思维实验的工具
+### 7.1 North Star Metric
 
-**优势**：
-- 支持多角色场景
-- 适用于战略规划
+**Core Value Metric**: **Weekly Active Discussions (WAD)**
 
-**劣势**：
-- 功能较为单一
-- 角色配置简单
-- 无观摩模式
-- 无报告生成
+**Definition**: Number of discussions created and completed per week
 
-**我们的差异化**：
-- 更完善的角色系统（多维度配置）
-- 实时观摩体验
-- 自动报告生成
-- 更丰富的讨论模式
+**Goals**:
+- 1 month after V1.0 launch: 100 discussions/week
+- 3 months after V1.0 launch: 500 discussions/week
+- 6 months after V1.0 launch: 2000 discussions/week
+
+**Rationale**:
+- Directly reflects core value usage of product
+- More reflective of product real value than user count
+- Highly correlated with business value
 
 ---
 
-### 8.2 间接竞品
+### 7.2 Process Metrics
 
-#### 竞品4：传统焦点小组服务
+**User Activation**:
+- **Registration conversion rate**: Visitor → Registered user > 15%
+- **First discussion completion rate**: Complete first discussion within 7 days of registration > 40%
+- **API configuration rate**: Configure API key within 7 days of registration > 60%
 
-**产品描述**：线下或线上真实用户焦点小组服务
+**User Retention**:
+- **Day 1 retention rate** > 40%
+- **Day 7 retention rate** > 25%
+- **Day 30 retention rate** > 15%
 
-**优势**：
-- 真实人类反馈
-- 丰富的非语言信息
-- 专业主持人引导
+**User Engagement**:
+- **Weekly discussion frequency**: Active users average > 2 discussions/week
+- **Discussion completion rate**: From creation to viewing report > 70%
+- **Average discussion duration**: 15-25 minutes (reflects content quality)
 
-**劣势**：
-- 成本高昂（$5000-$20000/场）
-- 周期长（招募、执行、分析）
-- 难以频繁进行
-- 样本量有限
-
-**我们的差异化**：
-- 成本极低（仅需API费用）
-- 速度快（20分钟 vs 数周）
-- 可随时进行
-- 模拟专家级参与者
-
-**定位关系**：我们不是替代品，而是补充品
-- 用于真实焦点小组前的预研
-- 用于早期快速迭代
-- 用于预算有限的情况
+**Feature Penetration**:
+- **Custom character usage rate** > 30%
+- **Intelligent recommendation usage rate** > 40%
+- **Report view completeness** > 60%
 
 ---
 
-#### 焦品5：在线调研工具（SurveyMonkey、问卷星）
+### 7.3 Outcome Metrics
 
-**产品描述**：在线问卷调查平台
+**User Satisfaction**:
+- **NPS (Net Promoter Score)** > 30
+- **User rating** > 4.0/5
+- **Customer Satisfaction (CSAT)** > 80%
 
-**优势**：
-- 成本低
-- 样本量大
-- 数据结构化
+**Discussion Quality** (subjective assessment):
+- **Discussion usefulness** > 80% (user feedback)
+- **Report quality rating** > 4.0/5
+- **Character realism rating** > 3.5/5
 
-**劣势**：
-- 仅能获取预设问题的答案
-- 无法深入探索
-- 无法观察思考过程
-- 缺乏互动和碰撞
-
-**我们的差异化**：
-- 深度探索而非浅层回答
-- 观点碰撞而非单向反馈
-- 观察思考过程而非仅获取结论
+**Business Metrics** (if launching paid version):
+- **Paid conversion rate** > 5%
+- **ARPU (Average Revenue Per User)** > $10/month
+- **CAC (Customer Acquisition Cost) < LTV (User Lifetime Value) × 0.3**
 
 ---
 
-### 8.3 竞争策略
+### 7.4 Reverse Metrics
 
-**差异化定位**：
-- **不定位为聊天机器人**，而是**思维辅助工具**
-- **不定位为娱乐工具**，而是**生产力工具**
-- **不替代人类讨论**，而是**快速预研和发散**
-
-**核心竞争优势**：
-1. **专业性**：针对productive场景设计，输出结构化报告
-2. **效率**：20分钟获取多视角深度讨论
-3. **灵活性**：自定义角色或智能推荐
-4. **隐私**：用户自备API，数据本地化
-
-**市场进入策略**：
-1. **种子用户策略**：聚焦产品经理、研究者等早期采用者
-2. **内容营销**：分享高质量讨论案例和报告
-3. **社区建设**：建立用户社区，分享角色配置和最佳实践
-4. **产品驱动增长**：通过分享链接实现病毒式传播
+**Metrics to Monitor and Reduce**:
+- **API call failure rate** < 1%
+- **Discussion interruption rate** < 5% (exit before completion)
+- **Report generation failure rate** < 0.5%
+- **User complaint rate** < 2%
+- **Negative feedback ratio** < 10%
 
 ---
 
-## 9. 未来规划
+### 7.5 Data Collection Plan
 
-### 9.1 短期规划（3-6个月）
+**Event Tracking Design**:
 
-**V1.0 - MVP发布**
-- 完成核心功能开发
-- 招募100个种子用户
-- 收集用户反馈并快速迭代
+**User Behavior Events**:
+- Page view (page_view)
+- Button click (button_click)
+- Discussion creation (discussion_create)
+- Discussion completion (discussion_complete)
+- Report viewing (report_view)
+- Report export (report_export)
 
-**V1.1 - 体验优化**
-- 优化讨论质量
-- 增加角色库
-- 提升UI/UX
+**Business Events**:
+- API call success/failure (api_call_success/fail)
+- Character creation/selection (character_create/select)
+- Discussion control operation (discussion_control)
+- Share link generation/access (share_link_generate/access)
 
-**V1.2 - 内容扩展**
-- 议题模板库
-- 报告导出功能
-- 分享功能
+**Performance Events**:
+- Page load time (page_load_time)
+- API response time (api_response_time)
+- Message generation time (message_generation_time)
 
-**关键里程碑**：
-- 第3个月：V1.0上线
-- 第4个月：达到100个周活跃讨论
-- 第6个月：达到500个周活跃讨论
-
----
-
-### 9.2 中期规划（6-12个月）
-
-**V2.0 - 协作版**
-- 团队工作区
-- 企业功能
-- 订阅模式
-
-**V2.1 - 智能化升级**
-- 讨论质量评分
-- 智能角色推荐
-- 议题智能分析
-
-**V2.5 - 移动端**
-- 移动端Web优化
-- 原生App规划
-
-**关键里程碑**：
-- 第8个月：推出团队协作版
-- 第10个月：达到2000个周活跃讨论
-- 第12个月：实现盈利
+**User Feedback Collection**:
+- Satisfaction survey popup after discussion ends
+- In-app feedback entry
+- Regular user interviews (5-10 people monthly)
+- NPS survey (quarterly)
 
 ---
 
-### 9.3 长期愿景（12个月以上）
+## 8. Competitive Analysis
 
-**V3.0 - 生态系统**
-- 开放API平台
-- 插件市场
-- 角色市场
+### 8.1 Direct Competitors
 
-**V3.5 - 多模态交互**
-- 语音讨论
-- 视频虚拟形象
-- 实时多人互动
+Currently no identical products in market, but tools with similar features:
 
-**V4.0 - AI进化**
-- 角色自学习
-- 跨讨论知识迁移
-- 个性化角色助理
+#### Competitor 1: ChatGPT + Custom Instructions
 
-**愿景**：成为知识工作者的标准思维辅助工具，像计算器之于数学，simFocus之于思考和决策。
+**Product Description**: OpenAI's ChatGPT supports custom instructions, can simulate different roles
 
----
+**Strengths**:
+- Powerful language model
+- Flexible custom instructions
+- Huge user base
 
-### 9.4 潜在扩展方向
+**Weaknesses**:
+- Need to manually simulate multiple characters (no automatic multi-character interaction)
+- No structured discussion workflow
+- No professional report generation
+- No observation experience
 
-**行业垂直化**：
-- 产品研发专用版
-- 学术研究专用版
-- 创意设计专用版
-- 教育培训专用版
-
-**技术探索**：
-- 结合知识图谱（如用户提到的GraphDB）
-- 多模态输入（图片、文档、视频）
-- 实时联网信息检索
-- 专家系统集成
-
-**商业模式探索**：
-- Freemium模式（基础免费，高级付费）
-- 企业订阅
-- API计费
-- 角色市场交易抽成
+**Our Differentiation**:
+- Specially designed multi-character discussion engine
+- Automated discussion workflow control
+- Structured report generation
+- Real-time observation experience
 
 ---
 
-## 10. 风险与依赖
+#### Competitor 2: Character.ai
 
-### 10.1 产品风险
+**Product Description**: Platform for creating and chatting with virtual characters
 
-**风险1：讨论质量不达预期**
+**Strengths**:
+- Rich character library
+- Realistic character dialogue
+- Active community
 
-**描述**：AI角色讨论质量低于用户预期，无法提供真实价值
+**Weaknesses**:
+- Mainly for entertainment and companionship
+- Doesn't support multi-character simultaneous discussion
+- No topic-driven discussion
+- No professional report generation
 
-**影响**：高 - 直接影响核心价值和用户留存
-
-**概率**：中
-
-**缓解措施**：
-- 精心设计Prompt工程
-- 优化角色配置逻辑
-- 增加讨论质量评分和反馈机制
-- 持续收集用户反馈并迭代
-- 设置合理的用户预期（营销材料中说明AI局限性）
-
-**应急预案**：
-- 提供"不满意重讨论"功能
-- 人工审核和优化高频使用的角色
+**Our Differentiation**:
+- Focus on productive use scenarios (decision-making, research, creativity)
+- Multi-character collaborative discussion
+- Topic-driven rather than character-driven
+- Professional-level report output
 
 ---
 
-**风险2：用户不理解产品价值**
+#### Competitor 3: C-3 - AI Roleplayer
 
-**描述**：用户认为直接问ChatGPT就够了，不理解多角色讨论的价值
+**Product Description**: Tool for AI role-playing thought experiments
 
-**影响**：高 - 影响用户获取和转化
+**Strengths**:
+- Supports multi-character scenarios
+- Applicable to strategic planning
 
-**概率**：中高
+**Weaknesses**:
+- Relatively single function
+- Simple character configuration
+- No observation mode
+- No report generation
 
-**缓解措施**：
-- 清晰的价值主张传达
-- 提供高质量示例讨论和报告
-- 产品引导流程（Onboarding）
-- 对比演示（单AI vs 多AI讨论）
-- 免费试用，让用户亲身体验
-
----
-
-**风险3：大模型API成本过高**
-
-**描述**：单次讨论的API成本超过用户愿意支付的范围
-
-**影响**：中 - 影响定价和盈利能力
-
-**概率**：中
-
-**缓解措施**：
-- 优化Prompt，减少Token消耗
-- 支持更便宜的模型（如GPT-3.5）
-- 支持本地模型（用户硬件已付费）
-- 智能缓存（复用相似讨论）
-- 分层定价（基础版用便宜模型，高级版用GPT-4）
+**Our Differentiation**:
+- More complete character system (multi-dimensional configuration)
+- Real-time observation experience
+- Automatic report generation
+- More rich discussion modes
 
 ---
 
-### 10.2 技术风险
+### 8.2 Indirect Competitors
 
-**风险4：大模型API不稳定**
+#### Competitor 4: Traditional Focus Group Services
 
-**描述**：第三方API限流、宕机或变更
+**Product Description**: Offline or online real user focus group services
 
-**影响**：高 - 直接影响用户体验
+**Strengths**:
+- Real human feedback
+- Rich non-verbal information
+- Professional moderator guidance
 
-**概率**：中
+**Weaknesses**:
+- High cost ($5000-$20000 per session)
+- Long cycle (recruitment, execution, analysis)
+- Difficult to conduct frequently
+- Limited sample size
 
-**缓解措施**：
-- 支持多个API提供商（降低单点依赖）
-- 实现重试和降级机制
-- 监控API状态，提前预警
-- 鼓励用户配置多个API作为备份
-- 缓存常见讨论模式
+**Our Differentiation**:
+- Very low cost (only API fees)
+- Fast (20 minutes vs weeks)
+- Can conduct anytime
+- Simulate expert-level participants
 
----
-
-**风险5：讨论流畅度和连贯性不足**
-
-**描述**：角色间对话不自然，缺乏逻辑连贯
-
-**影响**：高 - 影响用户体验
-
-**概率**：中
-
-**缓解措施**：
-- 优化讨论驱动算法
-- 增加上下文记忆机制
-- 使用更强的模型（Claude、GPT-4）
-- 设置角色行为规则和约束
-- 持续测试和优化
+**Positioning Relationship**: We're not a replacement, but a complement
+- Used as pre-research before real focus groups
+- Used for early rapid iteration
+- Used when budget is limited
 
 ---
 
-**风险6：响应速度过慢**
+#### Competitor 5: Online Survey Tools (SurveyMonkey, Wenjuanxing)
 
-**描述**：角色生成回复时间过长，影响观摩体验
+**Product Description**: Online questionnaire platforms
 
-**影响**：中 - 影响用户体验
+**Strengths**:
+- Low cost
+- Large sample size
+- Structured data
 
-**概率**：中
+**Weaknesses**:
+- Only get preset question answers
+- Cannot explore deeply
+- Cannot observe thinking process
+- Lack interaction and collision
 
-**缓解措施**：
-- 优化Prompt长度
-- 使用更快的模型
-- 并行处理多个角色
-- 实现流式输出（逐步显示）
-- 提供播放速度控制
-
----
-
-### 10.3 业务风险
-
-**风险7：用户获取成本过高**
-
-**描述**：CAC过高，无法可持续增长
-
-**影响**：高 - 影响盈利能力
-
-**概率**：中
-
-**缓解措施**：
-- 产品驱动增长（PLG）策略
-- 内容营销（案例、博客、社交媒体）
-- 社区建设（口碑传播）
-- 免费试用降低转化门槛
-- 合作伙伴渠道
+**Our Differentiation**:
+- Deep exploration rather than shallow answers
+- Viewpoint collision rather than unidirectional feedback
+- Observe thinking process rather than just get conclusions
 
 ---
 
-**风险8：商业化困难**
+### 8.3 Competitive Strategy
 
-**描述**：用户不愿意付费，商业化受阻
+**Differentiation Positioning**:
+- **Not positioned as chatbot**, but **thinking assistance tool**
+- **Not positioned as entertainment tool**, but **productivity tool**
+- **Not replacing human discussion**, but **rapid pre-research and divergence**
 
-**影响**：高 - 影响长期可持续性
+**Core Competitive Advantages**:
+1. **Professionalism**: Designed for productive scenarios, output structured reports
+2. **Efficiency**: 20 minutes to obtain multi-perspective deep discussion
+3. **Flexibility**: Custom characters or intelligent recommendation
+4. **Privacy**: User's own API, data localization
 
-**概率**：中
-
-**缓解措施**：
-- Freemium模式（基础功能免费）
-- 企业订阅（B2B更容易变现）
-- 按需付费（单次讨论付费）
-- API平台模式（第三方集成）
-- 数据洞察服务（匿名化数据分析）
-
----
-
-### 10.4 法律与合规风险
-
-**风险9：用户生成不当内容**
-
-**描述**：用户使用平台生成违法、有害内容
-
-**影响**：中 - 法律和声誉风险
-
-**概率**：低
-
-**缓解措施**：
-- 用户协议明确禁止
-- 内容审核机制（报告生成后检查）
-- 敏感词过滤
-- 用户举报机制
-- 配合监管要求
+**Market Entry Strategy**:
+1. **Seed User Strategy**: Focus on product managers, researchers and other early adopters
+2. **Content Marketing**: Share high-quality discussion cases and reports
+3. **Community Building**: Build user community, share character configurations and best practices
+4. **Product-Led Growth**: Achieve viral spread through share links
 
 ---
 
-**风险10：数据隐私违规**
+## 9. Future Planning
 
-**描述**：用户数据泄露或违反隐私法规
+### 9.1 Short-term Planning (3-6 months)
 
-**影响**：高 - 法律和声誉风险
+**V1.0 - MVP Launch**
+- Complete core feature development
+- Recruit 100 seed users
+- Collect user feedback and iterate rapidly
 
-**概率**：低
+**V1.1 - Experience Optimization**
+- Optimize discussion quality
+- Expand character library
+- Improve UI/UX
 
-**缓解措施**：
-- 加密存储用户数据
-- 遵守GDPR、CCPA等法规
-- 提供数据导出和删除功能
-- 定期安全审计
-- 隐私政策透明化
+**V1.2 - Content Expansion**
+- Topic template library
+- Report export functionality
+- Sharing functionality
 
----
-
-### 10.5 外部依赖
-
-**关键依赖**：
-
-1. **大模型API提供商**（OpenAI、Anthropic等）
-   - 依赖：核心功能依赖其API
-   - 风险：API变更、限流、价格调整
-   - 缓解：支持多家提供商，保持灵活性
-
-2. **云服务商**（AWS、Azure等）
-   - 依赖：基础设施托管
-   - 风险：服务中断、价格调整
-   - 缓解：多云策略，容器化部署
-
-3. **第三方认证服务**（Google、GitHub OAuth）
-   - 依赖：用户注册和登录
-   - 风险：服务变更
-   - 缓解：保持邮箱注册作为备选
+**Key Milestones**:
+- Month 3: V1.0 launch
+- Month 4: Achieve 100 weekly active discussions
+- Month 6: Achieve 500 weekly active discussions
 
 ---
 
-## 附录
+### 9.2 Medium-term Planning (6-12 months)
 
-### A. 术语表
+**V2.0 - Collaboration Version**
+- Team workspaces
+- Enterprise features
+- Subscription model
 
-| 术语 | 定义 |
-|-----|------|
-| simFocus | AI虚拟焦点小组平台产品名称 |
-| 议题 (Topic) | 用户提交的讨论主题或问题 |
-| 角色 (Character) | 由AI扮演的虚拟讨论参与者 |
-| 角色配置 (Character Profile) | 定义角色特征的参数集合 |
-| 观摩模式 (Observation Mode) | 用户实时观看角色讨论的模式 |
-| 报告 (Report) | 讨论结束后生成的结构化总结 |
-| API密钥 (API Key) | 用户访问大模型服务的认证凭证 |
-| 讨论 (Discussion) | 从创建议题到生成报告的完整流程 |
-| 轮次 (Round) | 每个角色发言一次称为一轮 |
-| 共识 (Consensus) | 角色们达成一致的观点 |
-| 争议点 (Controversy) | 角色间存在分歧的观点 |
+**V2.1 - Intelligence Upgrade**
+- Discussion quality scoring
+- Intelligent character recommendation
+- Topic intelligent analysis
 
----
+**V2.5 - Mobile**
+- Mobile web optimization
+- Native app planning
 
-### B. 参考文档
-
-**产品参考**：
-- 《启示录：打造用户喜爱的产品》 - Marty Cagan
-- 《精益创业》 - Eric Ries
-- 《设计心理学》 - Don Norman
-
-**技术参考**：
-- OpenAI API文档
-- Anthropic Claude API文档
-- Prompt工程最佳实践
-
-**竞品研究**：
-- Character.ai产品分析
-- ChatGPT自定义功能研究
-- 传统焦点小组方法论
+**Key Milestones**:
+- Month 8: Launch team collaboration version
+- Month 10: Achieve 2000 weekly active discussions
+- Month 12: Achieve profitability
 
 ---
 
-### C. 联系方式
+### 9.3 Long-term Vision (12+ months)
 
-**产品团队**：
-- 产品负责人：[待定]
-- 技术负责人：[待定]
-- 设计负责人：[待定]
+**V3.0 - Ecosystem**
+- Open API platform
+- Plugin marketplace
+- Character marketplace
 
-**反馈渠道**：
-- 用户反馈邮箱：feedback@simfocus.com
-- 产品社区：community.simfocus.com
-- GitHub Issues：github.com/simfocus/simfocus/issues
+**V3.5 - Multi-modal Interaction**
+- Voice discussions
+- Video virtual avatars
+- Real-time multi-person interaction
 
----
+**V4.0 - AI Evolution**
+- Character self-learning
+- Cross-discussion knowledge transfer
+- Personalized character assistants
 
-**文档变更历史**：
-
-| 版本 | 日期 | 修订人 | 变更说明 |
-|-----|------|-------|---------|
-| v1.0 | 2026-01-09 | AI Product Manager | 初始版本 |
-
----
-
-**文档评审状态**：
-- [ ] 产品团队评审
-- [ ] 技术团队评审
-- [ ] 设计团队评审
-- [ ] 利益相关者评审
-- [ ] 批准通过
+**Vision**: Become a standard thinking assistance tool for knowledge workers, like calculators to mathematics, simFocus to thinking and decision-making.
 
 ---
 
-*本PRD文档是simFocus产品开发的指导性文件，所有功能需求基于v1.0 MVP版本规划。随着产品迭代和用户反馈，本文档将持续更新和完善。*
+### 9.4 Potential Expansion Directions
+
+**Industry Verticalization**:
+- Product R&D dedicated version
+- Academic research dedicated version
+- Creative design dedicated version
+- Education training dedicated version
+
+**Technology Exploration**:
+- Integrate knowledge graphs (like GraphDB mentioned by user)
+- Multi-modal input (images, documents, video)
+- Real-time web information retrieval
+- Expert system integration
+
+**Business Model Exploration**:
+- Freemium model (basic free, advanced paid)
+- Enterprise subscription
+- API billing
+- Character marketplace transaction commission
+
+---
+
+## 10. Risks and Dependencies
+
+### 10.1 Product Risks
+
+**Risk 1: Discussion Quality Below Expectations**
+
+**Description**: AI character discussion quality below user expectations, cannot provide real value
+
+**Impact**: High - Directly affects core value and user retention
+
+**Probability**: Medium
+
+**Mitigation Measures**:
+- Carefully design prompt engineering
+- Optimize character configuration logic
+- Add discussion quality scoring and feedback mechanism
+- Continuously collect user feedback and iterate
+- Set reasonable user expectations (marketing materials state AI limitations)
+
+**Contingency Plan**:
+- Provide "dissatisfied re-discussion" function
+- Manual review and optimize high-frequency used characters
+
+---
+
+**Risk 2: Users Don't Understand Product Value**
+
+**Description**: Users think directly asking ChatGPT is enough, don't understand multi-character discussion value
+
+**Impact**: High - Affects user acquisition and conversion
+
+**Probability**: Medium-High
+
+**Mitigation Measures**:
+- Clear value proposition communication
+- Provide high-quality example discussions and reports
+- Product guidance flow (onboarding)
+- Comparative demonstration (single AI vs multi-AI discussion)
+- Free trial, let users experience firsthand
+
+---
+
+**Risk 3: LLM API Costs Too High**
+
+**Description**: Single discussion API cost exceeds user's willingness to pay range
+
+**Impact**: Medium - Affects pricing and profitability
+
+**Probability**: Medium
+
+**Mitigation Measures**:
+- Optimize prompts, reduce token consumption
+- Support cheaper models (like GPT-3.5)
+- Support local models (user hardware already paid)
+- Intelligent caching (reuse similar discussions)
+- Tiered pricing (basic version uses cheap models, advanced version uses GPT-4)
+
+---
+
+### 10.2 Technical Risks
+
+**Risk 4: LLM API Instability**
+
+**Description**: Third-party API rate limiting, downtime or changes
+
+**Impact**: High - Directly affects user experience
+
+**Probability**: Medium
+
+**Mitigation Measures**:
+- Support multiple API providers (reduce single point dependency)
+- Implement retry and degradation mechanisms
+- Monitor API status, advance warning
+- Encourage users to configure multiple APIs as backup
+- Cache common discussion patterns
+
+---
+
+**Risk 5: Discussion Fluency and Coherence Insufficient**
+
+**Description**: Character dialogue unnatural, lacks logical coherence
+
+**Impact**: High - Affects user experience
+
+**Probability**: Medium
+
+**Mitigation Measures**:
+- Optimize discussion driving algorithm
+- Add context memory mechanism
+- Use stronger models (Claude, GPT-4)
+- Set character behavior rules and constraints
+- Continuous testing and optimization
+
+---
+
+**Risk 6: Response Speed Too Slow**
+
+**Description**: Character reply generation time too long, affects observation experience
+
+**Impact**: Medium - Affects user experience
+
+**Probability**: Medium
+
+**Mitigation Measures**:
+- Optimize prompt length
+- Use faster models
+- Parallel process multiple characters
+- Implement streaming output (gradual display)
+- Provide playback speed control
+
+---
+
+### 10.3 Business Risks
+
+**Risk 7: User Acquisition Cost Too High**
+
+**Description**: CAC too high, cannot sustainably grow
+
+**Impact**: High - Affects profitability
+
+**Probability**: Medium
+
+**Mitigation Measures**:
+- Product-Led Growth (PLG) strategy
+- Content marketing (cases, blogs, social media)
+- Community building (word-of-mouth spread)
+- Free trial reduce conversion threshold
+- Partner channels
+
+---
+
+**Risk 8: Commercialization Difficulties**
+
+**Description**: Users unwilling to pay, commercialization blocked
+
+**Impact**: High - Affects long-term sustainability
+
+**Probability**: Medium
+
+**Mitigation Measures**:
+- Freemium model (basic functions free)
+- Enterprise subscription (B2B easier to monetize)
+- Pay-per-use (single discussion payment)
+- API platform model (third-party integration)
+- Data insight service (anonymized data analysis)
+
+---
+
+### 10.4 Legal and Compliance Risks
+
+**Risk 9: User-Generated Inappropriate Content**
+
+**Description**: Users use platform to generate illegal, harmful content
+
+**Impact**: Medium - Legal and reputation risk
+
+**Probability**: Low
+
+**Mitigation Measures**:
+- User agreement explicitly prohibits
+- Content moderation mechanism (report generation after check)
+- Sensitive word filtering
+- User reporting mechanism
+- Comply with regulatory requirements
+
+---
+
+**Risk 10: Data Privacy Violations**
+
+**Description**: User data leakage or violating privacy regulations
+
+**Impact**: High - Legal and reputation risk
+
+**Probability**: Low
+
+**Mitigation Measures**:
+- Encrypt stored user data
+- Comply with GDPR, CCPA and other regulations
+- Provide data export and deletion functions
+- Regular security audits
+- Transparent privacy policy
+
+---
+
+### 10.5 External Dependencies
+
+**Key Dependencies**:
+
+1. **LLM API Providers** (OpenAI, Anthropic, etc.)
+   - Dependency: Core functionality relies on their APIs
+   - Risk: API changes, rate limiting, price adjustments
+   - Mitigation: Support multiple providers, maintain flexibility
+
+2. **Cloud Service Providers** (AWS, Azure, etc.)
+   - Dependency: Infrastructure hosting
+   - Risk: Service interruption, price adjustments
+   - Mitigation: Multi-cloud strategy, containerized deployment
+
+3. **Third-party Authentication Services** (Google, GitHub OAuth)
+   - Dependency: User registration and login
+   - Risk: Service changes
+   - Mitigation: Keep email registration as alternative
+
+---
+
+## Appendices
+
+### Appendix A: Glossary
+
+| Term | Definition |
+|------|------------|
+| simFocus | AI Virtual Focus Group Platform product name |
+| Topic (议题) | Discussion theme or question submitted by user |
+| Character (角色) | Virtual discussion participant played by AI |
+| Character Profile (角色配置) | Parameter set defining character traits |
+| Observation Mode (观摩模式) | Mode where user watches character discussion in real-time |
+| Report (报告) | Structured summary generated after discussion ends |
+| API Key (API密钥) | Authentication credential for user accessing LLM services |
+| Discussion (讨论) | Complete workflow from creating topic to generating report |
+| Round (轮次) | Each character speaking once is called a round |
+| Consensus (共识) | Viewpoints characters agree on |
+| Controversy Point (争议点) | Viewpoints where characters disagree |
+
+---
+
+### Appendix B: Reference Documents
+
+**Product References**:
+- "Inspired: How to Create Tech Products Customers Love" - Marty Cagan
+- "The Lean Startup" - Eric Ries
+- "The Design of Everyday Things" - Don Norman
+
+**Technical References**:
+- OpenAI API documentation
+- Anthropic Claude API documentation
+- Prompt engineering best practices
+
+**Competitive Research**:
+- Character.ai product analysis
+- ChatGPT custom features research
+- Traditional focus group methodology
+
+---
+
+### Appendix C: Contact Information
+
+**Product Team**:
+- Product Owner: [TBD]
+- Technical Lead: [TBD]
+- Design Lead: [TBD]
+
+**Feedback Channels**:
+- User feedback email: feedback@simfocus.com
+- Product community: community.simfocus.com
+- GitHub Issues: github.com/simfocus/simfocus/issues
+
+---
+
+### Appendix D: Open Questions
+
+**Questions Requiring Product/Technical Team Decisions**:
+
+#### D.1 Architecture & Design
+
+1. **Discussion Recovery**: If user's connection drops mid-discussion, should the discussion:
+   - Continue running server-side?
+   - Pause and wait for reconnection?
+   - Allow state recovery on reconnect?
+   - **Status**: Unresolved - Affects UX and backend architecture
+
+2. **Multi-user Observation**: Should future versions allow multiple users to observe same discussion simultaneously (e.g., team watching together)?
+   - **Status**: Unresolved - Affects WebSocket permissions and scaling strategy
+
+3. **Discussion Forking**: Should users be able to "fork" a discussion at any point and explore different directions with same characters?
+   - **Status**: Unresolved - Affects data model and backend complexity
+
+4. **Character Identity Consistency**: How should characters maintain consistency if same character used across multiple discussions by same user?
+   - **Status**: Unresolved - Affects character memory architecture (P2 feature)
+
+#### D.2 Performance & Scaling
+
+5. **First Message Latency Breakdown**: For "first message" requirement of <10 seconds, does this include:
+   - Time to load discussion page?
+   - Time to connect WebSocket?
+   - Time to generate first character's message?
+   - **Status**: Unresolved - Affects performance targets and optimization strategy
+
+6. **Concurrent Discussion Limits**: What is expected maximum number of simultaneous discussions a single user might run?
+   - **Status**: Unresolved - Affects rate limiting and infrastructure planning
+
+7. **Message Persistence Strategy**: Should messages be persisted to database immediately or batched for performance?
+   - **Status**: Unresolved - Affects database write performance and data durability
+
+#### D.3 Product & UX
+
+8. **Discussion Interruption Behavior**: If user inserts a question, should characters:
+   - Finish current round first?
+   - Interrupt immediately?
+   - Insert at natural break point?
+   - **Status**: Unresolved - Affects discussion engine logic
+
+9. **Character Avatar System**: Are dynamic character avatars (AI-generated) planned or static images only?
+   - **Status**: Unresolved - Affects frontend implementation and storage
+
+10. **Mobile Experience Scope**: For mobile "secondary" support, should it be:
+    - Read-only observation of desktop-initiated discussions?
+    - Full discussion creation capability?
+    - Notification-driven when discussion updates?
+    - **Status**: Unresolved - Affects mobile development scope
+
+#### D.4 Data & Privacy
+
+11. **Data Analytics Permissions**: Can anonymized usage data be collected for product improvement:
+    - Discussion topics?
+    - Character configurations used?
+    - Completion rates?
+    - **Status**: Unresolved - Affects privacy policy and analytics implementation
+
+12. **API Key Sharing**: Should users be able to:
+    - Share API keys within a team?
+    - Set spending limits per discussion?
+    - Configure fallback keys?
+    - **Status**: Unresolved - Affects API key management features
+
+#### D.5 Technical Implementation
+
+13. **Vector Database Timing**: Is vector database (for character memory) planned for:
+    - MVP (P0)?
+    - P1 iteration?
+    - P2 (character evolution)?
+    - **Status**: Unresolved - Affects infrastructure setup and development timeline
+
+14. **Streaming vs Batch Display**: Should character responses:
+    - Stream token-by-token (more engaging)?
+    - Show after completion (simpler)?
+    - Configurable per user?
+    - **Status**: Unresolved - Affects frontend WebSocket handling and UX
+
+15. **Deployment Target**: Where will application be deployed:
+    - User's local machine?
+    - Cloud provider (which one)?
+    - Self-hosted by users?
+    - **Status**: Unresolved - Affects infrastructure decisions and cost model
+
+---
+
+**Document Change History**:
+
+| Version | Date | Reviser | Change Description |
+|---------|------|---------|-------------------|
+| v1.0 | 2026-01-09 | AI Product Manager | Initial version |
+| v1.1 | 2026-01-12 | Product Manager | Technical review completed, added system architecture, data architecture, API design, enhanced security section, open questions appendix |
+
+---
+
+**Document Review Status**:
+- [x] Product team review
+- [x] Technical team review
+- [ ] Design team review
+- [ ] Stakeholder review
+- [ ] Approved
+
+---
+
+*This PRD document is the guiding document for simFocus product development, all functional requirements based on v1.1 MVP version planning. As product iterates and user feedback collected, this document will continue to update and improve.*
