@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Silent SSO Check</title>
+</head>
+<body>
+  <script>
+    // Keycloak Silent SSO 检查页面
+    // 用于在后台刷新 token，不打断用户体验
+
+    function onLoad() {
+      const keycloak = new Keycloak({
+        url: 'https://keycloak.plfai.cn/',
+        realm: 'simfocus',
+        clientId: 'simfocus-frontend'
+      })
+
+      keycloak.init({
+        onLoad: 'check-sso',
+        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+        checkLoginIframe: false
+      }).then(function (authenticated) {
+        // 通知父窗口认证状态
+        if (window.parent !== window) {
+          window.parent.postMessage({
+            type: 'keycloak-sso-check',
+            authenticated: authenticated
+          }, '*')
+        }
+
+        if (!authenticated) {
+          // 未认证，不做任何操作
+          console.log('Silent SSO check: not authenticated')
+        }
+      }).catch(function (error) {
+        console.error('Silent SSO check error:', error)
+      })
+    }
+
+    // 等待 Keycloak.js 加载完成
+    if (typeof Keycloak !== 'undefined') {
+      onLoad()
+    } else {
+      // 如果 Keycloak.js 还未加载，动态加载它
+      const script = document.createElement('script')
+      script.src = 'https://keycloak.plfai.cn/js/keycloak.min.js'
+      script.onload = onLoad
+      document.head.appendChild(script)
+    }
+  </script>
+</body>
+</html>

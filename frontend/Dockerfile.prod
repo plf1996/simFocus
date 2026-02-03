@@ -1,0 +1,45 @@
+# 多阶段构建：构建阶段
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# 复制依赖文件
+COPY package*.json ./
+
+# 安装依赖
+RUN npm ci --only=production=false
+
+# 复制源代码
+COPY . .
+
+# 构建生产版本
+ARG VITE_API_BASE_URL=http://localhost:8000
+ARG VITE_KEYCLOAK_ENABLED=true
+ARG VITE_KEYCLOAK_SERVER_URL=https://keycloak.plfai.cn/
+ARG VITE_KEYCLOAK_REALM=simfocus
+ARG VITE_KEYCLOAK_CLIENT_ID=simfocus-frontend
+ARG VITE_AUTH_MODE=backend-proxy
+
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV VITE_KEYCLOAK_ENABLED=${VITE_KEYCLOAK_ENABLED}
+ENV VITE_KEYCLOAK_SERVER_URL=${VITE_KEYCLOAK_SERVER_URL}
+ENV VITE_KEYCLOAK_REALM=${VITE_KEYCLOAK_REALM}
+ENV VITE_KEYCLOAK_CLIENT_ID=${VITE_KEYCLOAK_CLIENT_ID}
+ENV VITE_AUTH_MODE=${VITE_AUTH_MODE}
+
+RUN npm run build
+
+# 生产阶段：使用 nginx 服务静态文件
+FROM nginx:alpine
+
+# 复制自定义 nginx 配置
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# 从构建阶段复制构建产物
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# 暴露端口
+EXPOSE 3000
+
+# 启动 nginx
+CMD ["nginx", "-g", "daemon off;"]

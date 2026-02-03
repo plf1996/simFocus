@@ -1,0 +1,27 @@
+{
+  "name": "simfocus-frontend",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@heroicons/vue": "^2.1.1",
+    "autoprefixer": "^10.4.16",
+    "axios": "^1.6.5",
+    "keycloak-js": "^24.0.0",
+    "marked": "^17.0.1",
+    "pinia": "^2.1.7",
+    "postcss": "^8.4.32",
+    "socket.io-client": "^4.6.0",
+    "tailwindcss": "^3.4.0",
+    "vue": "^3.4.0",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.0.2",
+    "vite": "^5.0.10"
+  }
+}
