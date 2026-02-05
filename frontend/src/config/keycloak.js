@@ -10,9 +10,9 @@
 
 export const keycloakConfig = {
   // Keycloak 服务器配置
-  url: import.meta.env.VITE_KEYCLOAK_SERVER_URL || 'https://keycloak.plfai.cn/',
-  realm: import.meta.env.VITE_KEYCLOAK_REALM || 'simfocus',
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'simfocus-frontend',
+  url: import.meta.env.VITE_KEYCLOAK_SERVER_URL || '',
+  realm: import.meta.env.VITE_KEYCLOAK_REALM || '',
+  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || '',
 
   // SSL 配置
   sslRequired: 'external',
@@ -53,7 +53,7 @@ export const keycloakConfig = {
   backendCallbackPath: '/auth/success',
 
   // API 配置
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || '',
 }
 
 /**
@@ -99,7 +99,7 @@ export const isBackendProxyMode = () => {
  * 获取认证模式
  */
 export const getAuthMode = () => {
-  return import.meta.env.VITE_AUTH_MODE || 'backend-proxy' // 'backend-proxy' | 'frontend-direct'
+  return import.meta.env.VITE_AUTH_MODE || '' // 'backend-proxy' | 'frontend-direct'
 }
 
 export default keycloakConfig

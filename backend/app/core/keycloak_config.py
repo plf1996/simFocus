@@ -24,23 +24,23 @@ class KeycloakConfig(BaseModel):
 
     # 服务器配置（从 .env 读取）
     server_url: str = Field(
-        default="https://keycloak.plfai.cn/",
+        default="",
         description="Keycloak 服务器 URL"
     )
 
     realm: str = Field(
-        default="simfocus",
+        default="",
         description="Realm 名称"
     )
 
     # 客户端配置
     frontend_client_id: str = Field(
-        default="simfocus-frontend",
+        default="",
         description="前端客户端 ID"
     )
 
     backend_client_id: str = Field(
-        default="simfocus-backend",
+        default="",
         description="后端客户端 ID"
     )
 
@@ -143,20 +143,21 @@ def load_keycloak_config() -> KeycloakConfig:
     从环境变量加载 Keycloak 配置
 
     环境变量映射（.env 文件）：
-    - Keycloak_Base_URL -> server_url
-    - Realm_Name -> realm
-    - Frontend_Client_ID -> frontend_client_id
-    - Backend_Client_ID -> backend_client_id
-    - Backend_Client_Secret -> backend_client_secret
+    - KEYCLOAK_ENABLED -> enabled
+    - KEYCLOAK_SERVER_URL -> server_url
+    - KEYCLOAK_REALM -> realm
+    - KEYCLOAK_FRONTEND_CLIENT_ID -> frontend_client_id
+    - KEYCLOAK_BACKEND_CLIENT_ID -> backend_client_id
+    - KEYCLOAK_BACKEND_CLIENT_SECRET -> backend_client_secret
     """
-    # 从环境变量读取（支持你的 .env 格式）
+    # 从环境变量读取
     config = KeycloakConfig(
-        enabled=os.getenv("KEYCLOAK_ENABLED", "true").lower() == "true",
-        server_url=os.getenv("Keycloak_Base_URL", "https://keycloak.plfai.cn/"),
-        realm=os.getenv("Realm_Name", "simfocus"),
-        frontend_client_id=os.getenv("Frontend_Client_ID", "simfocus-frontend"),
-        backend_client_id=os.getenv("Backend_Client_ID", "simfocus-backend"),
-        backend_client_secret=os.getenv("Backend_Client_Secret", ""),
+        enabled=os.getenv("KEYCLOAK_ENABLED", "false").lower() == "true",
+        server_url=os.getenv("KEYCLOAK_SERVER_URL", ""),
+        realm=os.getenv("KEYCLOAK_REALM", ""),
+        frontend_client_id=os.getenv("KEYCLOAK_FRONTEND_CLIENT_ID", ""),
+        backend_client_id=os.getenv("KEYCLOAK_BACKEND_CLIENT_ID", ""),
+        backend_client_secret=os.getenv("KEYCLOAK_BACKEND_CLIENT_SECRET", ""),
     )
 
     return config

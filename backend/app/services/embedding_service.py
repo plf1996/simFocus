@@ -319,11 +319,11 @@ def get_embedding_service() -> EmbeddingService:
     """Get or create global embedding service instance"""
     global _embedding_service
     if _embedding_service is None:
-        # Get API key from environment - strictly use provided parameter names
-        import os
-        api_key = os.getenv("Embedding_API_KEY", "")
-        base_url = os.getenv("Embedding_BASR_URL", "")
-        model = os.getenv("Embedding_MODEl", "text-embedding-v3")
+        # Get API key from settings
+        from app.core.config import settings
+        api_key = settings.EMBEDDING_API_KEY
+        base_url = settings.EMBEDDING_BASE_URL
+        model = settings.EMBEDDING_MODEL
 
         if not api_key:
             logger.warning("No Embedding API key found, embeddings will return zero vectors")
